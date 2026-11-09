@@ -1,8 +1,8 @@
 //
 //  MatdoriApp.swift
-//  Matdori
+//  project2
 //
-//  Created by Ned Park on 11/9/26.
+//  Created by Jang Ho on 11/5/26.
 //
 
 import SwiftUI

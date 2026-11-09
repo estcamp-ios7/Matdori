@@ -11,20 +11,20 @@
     ],
   },
   "files": [
-    { "kind": "folder", "path": "Matdori", "target-membership": [ "Matdori" ] },
+    { "kind": "folder", "path": "project2", "target-membership": [ "project2" ] },
     {
       "kind": "group",
       "name": "Products",
       "children": [
-        { "path": "<PRODUCTS>/Matdori.app", "id": "A649545530A1585B00267ED6", "type": "wrapper.application", "index": false },
+        { "path": "<PRODUCTS>/project2.app", "id": "521390AE309C6448000CCADA", "type": "wrapper.application", "index": false },
       ],
     },
   ],
   "targets": [
     {
-      "name": "Matdori",
-      "id": "A649545430A1585A00267ED6",
-      "product": "Products/Matdori.app",
+      "name": "project2",
+      "id": "521390AD309C6448000CCADA",
+      "product": "Products/project2.app",
       "product-type": "application",
       "build-phases": [
         "compile-sources",
@@ -36,7 +36,6 @@
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
-        "DEVELOPMENT_TEAM": "6R3M7VGRP2",
         "ENABLE_PREVIEWS": "YES",
         "GENERATE_INFOPLIST_FILE": "YES",
         "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
@@ -49,7 +48,7 @@
           "@executable_path/Frameworks",
         ],
         "MARKETING_VERSION": "1.0",
-        "PRODUCT_BUNDLE_IDENTIFIER": "com.hello.Matdori",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.hello.project2",
         "PRODUCT_NAME": "$(TARGET_NAME)",
         "STRING_CATALOG_GENERATE_SYMBOLS": "YES",
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
@@ -95,7 +94,6 @@
     "COPY_PHASE_STRIP": "NO",
     "DEBUG_INFORMATION_FORMAT[config=Debug]": "dwarf",
     "DEBUG_INFORMATION_FORMAT[config=Release]": "dwarf-with-dsym",
-    "DEVELOPMENT_TEAM": "6R3M7VGRP2",
     "ENABLE_NS_ASSERTIONS[config=Release]": "NO",
     "ENABLE_STRICT_OBJC_MSGSEND": "YES",
     "ENABLE_TESTABILITY[config=Debug]": "YES",
