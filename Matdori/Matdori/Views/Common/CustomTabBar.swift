@@ -9,8 +9,8 @@ import SwiftUI
 
 // MARK: - 앱 주요 탭 열거형
 enum AppTab: String, CaseIterable {
-    case feed = "피드"
     case map = "주변 맛집"
+    case feed = "피드"
     case myPage = "나의 맛집"
 }
 
@@ -21,10 +21,13 @@ struct CustomTabBar: View {
     // MARK: 현재 선택된 탭 바인딩
     @Binding var selectedTab: AppTab
 
+    // MARK: [이벤트 핸들러] 이미 활성화된 탭을 다시 탭했을 때 호출되는 클로저 (루트 화면 복귀 등)
+    var onReselectTab: ((AppTab) -> Void)? = nil
+
     var body: some View {
-        HStack(spacing: 40) {
-            tabButton(title: "피드", icon: "bubble.left.and.bubble.right.fill", tab: .feed)
+        HStack(spacing: 36) {
             tabButton(title: "주변 맛집", icon: "map.fill", tab: .map)
+            tabButton(title: "피드", icon: "newspaper.fill", tab: .feed)
             tabButton(title: "나의 맛집", icon: "bookmark.fill", tab: .myPage)
         }
         .padding(.horizontal, 28)
@@ -43,8 +46,14 @@ struct CustomTabBar: View {
     // 탭 개별 버튼 빌더
     private func tabButton(title: String, icon: String, tab: AppTab) -> some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selectedTab = tab
+            if selectedTab == tab {
+                // 이미 활성화된 탭을 다시 눌렀을 때 재선택 이벤트 전달 (예: 피드 탭 메인 복귀)
+                onReselectTab?(tab)
+            } else {
+                // 새로운 탭으로의 전환 애니메이션
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    selectedTab = tab
+                }
             }
         } label: {
             VStack(spacing: 4) {

@@ -11,7 +11,7 @@
     ],
   },
   "files": [
-    { "kind": "folder", "path": "project2", "target-membership": [ "project2" ] },
+    { "kind": "folder", "path": "Matdori", "target-membership": [ "project2" ] },
     {
       "kind": "group",
       "name": "Products",

@@ -167,6 +167,24 @@ struct MyRestaurantCard: View {
                         .foregroundStyle(Color.orange)
                 }
             }
+
+            // 나만의 메모가 작성된 경우 카드에 표시
+            if !restaurant.myNote.isEmpty {
+                if restaurant.myRating == nil {
+                    Divider().padding(.vertical, 2)
+                }
+                HStack(alignment: .top, spacing: 6) {
+                    Image(systemName: "note.text")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Color.orange)
+                    Text(restaurant.myNote)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                    Spacer()
+                }
+                .padding(.top, 2)
+            }
         }
         .padding(14)
         .background(Color(uiColor: .secondarySystemGroupedBackground))

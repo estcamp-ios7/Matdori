@@ -14,9 +14,50 @@ enum FoodCategory: String, CaseIterable, Identifiable {
     case korean = "한식"
     case chinese = "중식"
     case japanese = "일식"
+    case westen = "양식"
     case dessert = "디저트"
+    case etc = "기타"
 
     var id: String { rawValue }
+
+    // MARK: 카테고리별 대표 SF Symbol 아이콘 명칭
+    var iconName: String {
+        switch self {
+        case .korean, .chinese, .japanese, .westen:
+            return "fork.knife" // 한식, 중식, 일식, 양식 식사류: 기본 수저/포크
+        case .dessert:
+            return "cup.and.saucer.fill" // 디저트/카페: 커피와 잔
+        case .all, .etc:
+            return "storefront.fill" // 기타/전체: 상점
+        }
+    }
+}
+
+// MARK: - 광주광역시 자치구 구분 열거형 (전라도 광주 한정)
+enum GwangjuDistrict: String, CaseIterable, Identifiable {
+    case all = "전체"
+    case dong = "동구"       // 충장로, 동명동
+    case seo = "서구"         // 상무지구, 화정동
+    case nam = "남구"         // 양림동, 봉선동
+    case buk = "북구"         // 용봉동, 일곡동
+    case gwangsan = "광산구"  // 수완지구, 송정리
+
+    var id: String { rawValue }
+}
+
+// MARK: - 주변 맛집 정렬 옵션 열거형
+enum NearbySortOption: String, CaseIterable, Identifiable {
+    case distance = "거리순"
+    case rating = "평점순"
+
+    var id: String { rawValue }
+
+    var iconName: String {
+        switch self {
+        case .distance: return "location.fill"
+        case .rating: return "star.fill"
+        }
+    }
 }
 
 // MARK: - 메뉴 항목 모델
@@ -30,11 +71,15 @@ struct MenuItem: Identifiable {
 // MARK: - 커뮤니티 방문자 리뷰 모델
 struct CommunityReview: Identifiable {
     let id = UUID()
-    var authorName: String   // 작성자 닉네임
-    var authorAvatar: String // 작성자 아바타 아이콘
-    var rating: Double       // 평점
-    var visitDate: String    // 방문 시기
-    var content: String      // 리뷰 본문
+    var authorName: String       // 작성자 닉네임
+    var authorAvatar: String     // 작성자 아바타 아이콘
+    var rating: Double           // 평점 (1.0 ~ 5.0)
+    var visitDate: String        // 방문 시기
+    var content: String          // 리뷰 본문
+    var photoName: String? = nil // 리뷰 첨부 사진 (옵셔널)
+    var orderCount: Int = 3      // 최근 주문/방문 횟수 (피드 프로필 동기화)
+    var totalReviewCount: Int = 12 // 작성한 총 리뷰 수 (피드 프로필 동기화)
+    var userAvgRating: Double = 4.9 // 작성자 평균 별점 (피드 프로필 동기화)
 }
 
 // MARK: - 식당 메인 데이터 모델
@@ -42,6 +87,7 @@ struct Restaurant: Identifiable {
     let id = UUID()
     var name: String                         // 식당 이름
     var category: FoodCategory               // 음식 카테고리
+    var district: GwangjuDistrict = .buk     // 광주 자치구 (전라도 광주 한정)
     var distanceMeters: Int                  // 현재 위치로부터의 거리 (단위: m)
     var baseRating: Double                   // 기본 별점 (포스트잇 요구사항)
     var address: String                      // 도로명 주소 (포스트잇 요구사항)

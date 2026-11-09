@@ -2,7 +2,7 @@
 //  RestaurantDetailView.swift
 //  project2
 //
-//  식당 상세 정보 페이지 (노란 포스트잇 요구사항 완벽 반영, 나만의 별점 평가, 다크모드 대응)
+//  식당 상세 정보 페이지 (탐색용: 기본 정보 확인 및 나의 맛집 저장)
 //
 
 import SwiftUI
@@ -19,24 +19,11 @@ struct RestaurantDetailView: View {
     // MARK: 대상 식당 정보
     var restaurant: Restaurant
 
-    // MARK: 나의 맛집 리스트에서 진입했는지 여부 (나의 맛집에서 진입 시: +버튼 숨김 및 나만의 별점 섹션 노출)
-    var openedFromMyList: Bool
-
     // MARK: 맛집 신규 추가 완료 알림창 상태
     @State private var showAddedAlert = false
 
     // MARK: 이미 저장된 가게 알림창 상태 (중복 저장 및 삭제 방지)
     @State private var showAlreadySavedAlert = false
-
-    // MARK: 내가 준 별점 상태 (선택되지 않은 경우 nil)
-    @State private var currentMyRating: Int?
-
-    init(viewModel: RestaurantViewModel, restaurant: Restaurant, openedFromMyList: Bool) {
-        self.viewModel = viewModel
-        self.restaurant = restaurant
-        self.openedFromMyList = openedFromMyList
-        _currentMyRating = State(initialValue: restaurant.myRating)
-    }
 
     var body: some View {
         NavigationStack {
@@ -96,58 +83,9 @@ struct RestaurantDetailView: View {
                     }
                     .padding(.horizontal, 16)
 
-                    // MARK: 3. 나만의 별점 평가 섹션 (나의 맛집 리스트에서 진입했을 때만 노출)
-                    if openedFromMyList {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "person.crop.circle.badge.checkmark")
-                                    .foregroundStyle(Color.orange)
-                                Text("나만의 별점 평가")
-                                    .font(.system(size: 15, weight: .bold))
-                                Spacer()
-                                if let rating = currentMyRating {
-                                    Text("\(rating) / 5")
-                                        .font(.system(size: 14, weight: .bold))
-                                        .monospacedDigit()
-                                        .foregroundStyle(Color.orange)
-                                } else {
-                                    Text("별점을 선택해주세요")
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-
-                            // 1~5점 별점 인터랙티브 수정
-                            HStack(spacing: 8) {
-                                ForEach(1...5, id: \.self) { star in
-                                    Button {
-                                        currentMyRating = star
-                                        viewModel.updateMyRating(id: restaurant.id, rating: star)
-                                    } label: {
-                                        Image(systemName: (currentMyRating != nil && star <= (currentMyRating ?? 0)) ? "star.fill" : "star")
-                                            .font(.system(size: 26))
-                                            .foregroundStyle((currentMyRating != nil && star <= (currentMyRating ?? 0)) ? Color.orange : Color.gray.opacity(0.35))
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                            .padding(.vertical, 4)
-
-                            if !restaurant.myNote.isEmpty {
-                                Text("내 메모: \(restaurant.myNote)")
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(14)
-                        .background(Color.orange.opacity(colorScheme == .dark ? 0.15 : 0.08))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal, 16)
-                    }
-
                     Divider().padding(.horizontal, 16)
 
-                    // MARK: 4. 상세 정보 섹션 (주소, 오픈/마감시간, 전화번호) (포스트잇 요구사항)
+                    // MARK: 3. 상세 정보 섹션 (주소, 오픈/마감시간, 전화번호) (포스트잇 요구사항)
                     VStack(alignment: .leading, spacing: 12) {
                         infoRow(icon: "mappin.circle.fill", label: "주소", content: restaurant.address)
                         infoRow(icon: "clock.fill", label: "영업시간", content: restaurant.openCloseTime)
@@ -159,7 +97,7 @@ struct RestaurantDetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal, 16)
 
-                    // MARK: 5. 메뉴 및 가격 섹션 (포스트잇 요구사항: 메뉴(가격))
+                    // MARK: 4. 메뉴 및 가격 섹션 (포스트잇 요구사항: 메뉴(가격))
                     VStack(alignment: .leading, spacing: 10) {
                         Text("메뉴 및 가격")
                             .font(.system(size: 16, weight: .bold))
@@ -199,7 +137,7 @@ struct RestaurantDetailView: View {
                     }
                     .padding(.horizontal, 16)
 
-                    // MARK: 6. 실제 방문자 리뷰 섹션 (개인적인 경험과 평가 공유, SNS 배지 제거)
+                    // MARK: 5. 실제 방문자 리뷰 섹션 (개인적인 경험과 평가 공유, SNS 배지 제거)
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text("실제 방문자 리뷰")
@@ -261,26 +199,23 @@ struct RestaurantDetailView: View {
                     }
                 }
 
-                // 포스트잇 스펙: "나의 맛집 리스트에서 진입 시 플러스버튼 삭제", 일반 탐색 시에는 (+) 표시로 저장
-                // 중복 저장 방지: 이미 저장된 경우 삭제되지 않고 "이미 저장된 가게입니다" 알림 노출
+                // 저장 (+) 버튼 (중복 저장 방지 안내 포함)
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !openedFromMyList {
-                        Button {
-                            let isNewlySaved = viewModel.saveRestaurant(id: restaurant.id)
-                            if isNewlySaved {
-                                showAddedAlert = true
-                            } else {
-                                showAlreadySavedAlert = true
-                            }
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundStyle(Color.orange)
+                    Button {
+                        let isNewlySaved = viewModel.saveRestaurant(id: restaurant.id)
+                        if isNewlySaved {
+                            showAddedAlert = true
+                        } else {
+                            showAlreadySavedAlert = true
                         }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Color.orange)
                     }
                 }
             }
-            // 와이어프레임 중앙 알림창: "나의 맛집에 추가되었습니다!" (확인 터치 시 시트 닫힘)
+            // 와이어프레임 중앙 알림창: "나의 맛집에 추가되었습니다!"
             .alert("나의 맛집에 추가되었습니다!", isPresented: $showAddedAlert) {
                 Button("확인", role: .cancel) {
                     dismiss()
@@ -288,7 +223,7 @@ struct RestaurantDetailView: View {
             } message: {
                 Text("'나의 맛집'에 저장되었습니다.")
             }
-            // 중복 저장 시 알림창: "이미 저장된 가게입니다" (식당 삭제 방지 및 확인 터치 시 시트 닫힘)
+            // 중복 저장 시 알림창: "이미 저장된 가게입니다"
             .alert("이미 저장된 가게입니다", isPresented: $showAlreadySavedAlert) {
                 Button("확인", role: .cancel) {
                     dismiss()
@@ -318,22 +253,20 @@ struct RestaurantDetailView: View {
     }
 }
 
-#Preview("상세페이지 (주변/피드 탐색 진입 - +버튼 노출, 나만의 별점 숨김)") {
+#Preview("상세페이지 - 라이트") {
     let vm = RestaurantViewModel()
     RestaurantDetailView(
         viewModel: vm,
-        restaurant: vm.restaurants[0],
-        openedFromMyList: false
+        restaurant: vm.restaurants[0]
     )
     .preferredColorScheme(.light)
 }
 
-#Preview("상세페이지 (나의 맛집 리스트 진입 - +버튼 숨김, 나만의 별점 노출)") {
+#Preview("상세페이지 - 다크") {
     let vm = RestaurantViewModel()
     RestaurantDetailView(
         viewModel: vm,
-        restaurant: vm.restaurants[1],
-        openedFromMyList: true
+        restaurant: vm.restaurants[1]
     )
-    .preferredColorScheme(.light)
+    .preferredColorScheme(.dark)
 }
