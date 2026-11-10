@@ -3,183 +3,55 @@
 //  project2
 //
 //  이웃 방문자 리뷰 게시글 상세 화면 (네비게이션 푸시 형태)
-//  - 작성자 프로필 헤더 및 5점 별점이 피드 카드와 1:1 완벽 동기화
-//  - 업로드 이미지 레퍼런스에 맞춘 원형 아바타, 방문 통계, 전문 본문, 음식 사진 갤러리 지원
-//  - 신고하기 버튼 제외 및 다크모드 대응
+//  (서브뷰 FeedPhotoGalleryView 분리 적용)
 //
 
 import SwiftUI
 
 // MARK: - 피드 게시글 상세 화면 뷰
 struct FeedPostDetailView: View {
-    // MARK: [환경 변수] 화면 닫기 및 다크모드 감지
+    // MARK: 화면 닫기 및 다크모드 환경 감지
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
-    // MARK: [전달받은 모델] 피드에서 선택한 식당 및 리뷰 데이터
+    // MARK: 피드에서 선택한 식당 및 리뷰 데이터 모델
     let restaurant: Restaurant
     let review: CommunityReview
 
-    // MARK: [콜백] 하단 식당 바로가기 터치 시 식당 탐색 상세화면 열기
+    // MARK: 하단 식당 바로가기 터치 시 탐색 상세 모달을 오픈하는 콜백
     var onSelectRestaurant: ((Restaurant) -> Void)? = nil
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // MARK: 1. 작성자 프로필 헤더 영역 (피드와 100% 동기화)
-                HStack(spacing: 12) {
-                    // 원형 아바타 (피드의 review.authorAvatar와 동기화)
-                    Image(systemName: review.authorAvatar)
-                        .font(.system(size: 24))
-                        .foregroundStyle(Color.orange)
-                        .frame(width: 46, height: 46)
-                        .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
-                        .clipShape(Circle())
+                // MARK: 1. 작성자 프로필 헤더 영역
+                authorProfileHeader
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        // 작성자 닉네임 + chevron.right (예: 배고파 >)
-                        HStack(spacing: 4) {
-                            Text(review.authorName)
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(.primary)
+                // MARK: 2. 5점 별점 및 식당 이름 + 방문 날짜 배지
+                ratingAndDateBadge
 
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Color.gray.opacity(0.6))
-                        }
+                // MARK: 3. 솔직 방문자 리뷰 본문 카드
+                reviewContentCard
 
-                        // 활동 이력 통계 (방문 횟수, 리뷰 수, 평균 별점)
-                        HStack(spacing: 4) {
-                            Text("최근 \(review.orderCount)번 방문")
-                            Text("·")
-                            Text("리뷰 \(review.totalReviewCount)개")
-                            Text("·")
-                            Text("평균별점 \(String(format: "%.1f", review.userAvgRating))")
-                        }
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                    }
+                // MARK: 4. 음식 사진 2분할 갤러리 서브뷰
+                FeedPhotoGalleryView(restaurant: restaurant, review: review)
 
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-
-                // MARK: 2. 별점 및 방문 메타정보 영역 (피드의 review.rating과 완전 동기화)
-                HStack(spacing: 8) {
-                    // 노란색 5점 별점 (피드와 일치)
-                    HStack(spacing: 2) {
-                        ForEach(1...5, id: \.self) { star in
-                            Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Color.yellow)
-                        }
-                    }
-
-                    Text("\(review.visitDate) 방문")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-
-                    Text("•")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
-
-                    Text("찐방문 인증")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.orange)
-                }
-                .padding(.horizontal, 16)
-
-                // MARK: 3. 리뷰 원문 전문 본문 (말줄임 없이 전문 노출)
-                Text(review.content)
-                    .font(.system(size: 15))
-                    .foregroundStyle(.primary)
-                    .lineSpacing(6)
-                    .padding(.horizontal, 16)
-
-                // MARK: 4. 음식 사진 갤러리 영역 (레퍼런스 이미지의 나란히 배치된 음식 사진)
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 12) {
-                        // 1번 음식 사진 (케이크/디저트/메인 요리 썸네일)
-                        foodGalleryPhoto(index: 1, title: "대표 메뉴 컷")
-
-                        // 2번 음식 사진 (클로즈업 컷)
-                        foodGalleryPhoto(index: 2, title: "상세 컷")
-                    }
-                    .padding(.horizontal, 16)
-                }
-
-                Divider()
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-
-                // MARK: 5. 하단 리뷰 대상 식당 안내 카드
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("리뷰 대상 맛집")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.secondary)
-
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack(spacing: 6) {
-                                Text(restaurant.name)
-                                    .font(.system(size: 15, weight: .bold))
-
-                                Text(restaurant.category.rawValue)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
-                                    .foregroundStyle(Color.orange)
-                                    .clipShape(Capsule())
-                            }
-
-                            Text("📍 \(restaurant.address)")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer()
-
-                        // 식당 상세 탐색으로 연결되는 버튼
-                        if let onSelectRestaurant {
-                            Button {
-                                onSelectRestaurant(restaurant)
-                            } label: {
-                                HStack(spacing: 4) {
-                                    Text("식당 보기")
-                                        .font(.system(size: 12, weight: .semibold))
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 11, weight: .semibold))
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
-                                .foregroundStyle(Color.orange)
-                                .clipShape(Capsule())
-                            }
-                        }
-                    }
-                    .padding(14)
-                    .background(Color(uiColor: .secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.04), lineWidth: 1)
-                    )
-                }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 40)
+                // MARK: 5. 하단 식당 상세페이지 바로가기 카드
+                restaurantDirectLinkCard
             }
+            .padding(.horizontal, 16)
+            .padding(.top, 14)
+            .padding(.bottom, 40)
         }
         .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("리뷰 상세")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        // 네비게이션 툴바 뒤로가기 버튼 구성 (신고하기 버튼 제외)
         .toolbar {
+            // 상단 좌측 커스텀 뒤로가기 버튼
             ToolbarItem(placement: .topBarLeading) {
                 Button {
+                    // 이전 화면으로 복귀
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
@@ -190,51 +62,160 @@ struct FeedPostDetailView: View {
         }
     }
 
-    // MARK: - [헬퍼 함수] 음식 갤러리 사진 뷰 빌더
-    @ViewBuilder
-    private func foodGalleryPhoto(index: Int, title: String) -> some View {
-        ZStack(alignment: .bottomLeading) {
-            // 따뜻한 톤의 웜톤 그라데이션 및 부드러운 코너 라운딩
-            LinearGradient(
-                colors: index == 1
-                    ? [Color(red: 0.95, green: 0.68, blue: 0.32), Color(red: 0.82, green: 0.44, blue: 0.18)]
-                    : [Color(red: 0.93, green: 0.60, blue: 0.28), Color(red: 0.78, green: 0.38, blue: 0.14)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+    // MARK: - [헬퍼 서브뷰] 작성자 프로필 헤더
+    private var authorProfileHeader: some View {
+        HStack(spacing: 12) {
+            // 원형 작성자 아바타 아이콘
+            Image(systemName: review.authorAvatar)
+                .font(.system(size: 24))
+                .foregroundStyle(Color.orange)
+                .frame(width: 46, height: 46)
+                .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                .clipShape(Circle())
 
-            // 음식 사진 느낌을 주는 카테고리 심볼 아이콘
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Image(systemName: restaurant.category == .dessert ? "birthday.cake.fill" : "fork.knife")
-                        .font(.system(size: 36))
-                        .foregroundStyle(.white.opacity(0.85))
-                        .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
-                    Spacer()
+            VStack(alignment: .leading, spacing: 4) {
+                // 작성자 닉네임 + 쉐브론 화살표
+                HStack(spacing: 4) {
+                    Text(review.authorName)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.primary)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.gray.opacity(0.6))
                 }
-                Spacer()
+
+                // 방문 이력 통계 (방문 횟수, 총 리뷰 수, 평균 별점)
+                HStack(spacing: 4) {
+                    Text("최근 \(review.orderCount)번 방문")
+                    Text("·")
+                    Text("리뷰 \(review.totalReviewCount)개")
+                    Text("·")
+                    Text("평균별점 \(String(format: "%.1f", review.userAvgRating))")
+                }
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
             }
 
-            // 하단 사진 캡션 배지
-            Text(title)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.black.opacity(0.35))
-                .clipShape(Capsule())
-                .padding(8)
+            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 150)
+    }
+
+    // MARK: - [헬퍼 서브뷰] 별점 및 방문 날짜 배지
+    private var ratingAndDateBadge: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            
+            // 식당 이름, 카테고리, 자치구 태그 행
+            HStack(spacing: 6) {
+                Image(systemName: "fork.knife")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.orange)
+
+                Text(restaurant.name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+
+//                Text("•")
+//                    .foregroundStyle(.secondary)
+//
+//                Text(restaurant.category.rawValue)
+//                    .font(.system(size: 12))
+//                    .foregroundStyle(.secondary)
+//
+//                Text("•")
+//                    .foregroundStyle(.secondary)
+//
+//                Text(restaurant.district.rawValue)
+//                    .font(.system(size: 12))
+//                    .foregroundStyle(.secondary)
+            }
+            
+            
+            HStack(spacing: 4) {
+                ForEach(1...5, id: \.self) { star in
+                    Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
+                        .font(.system(size: 18))
+                        .foregroundStyle(Color.yellow)
+                }
+
+                Text(String(format: "%.1f", review.rating))
+                    .font(.system(size: 16, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(.primary)
+                    .padding(.leading, 4)
+
+                Spacer()
+
+                Text(review.visitDate)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+
+        }
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.06), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.05), radius: 5, x: 0, y: 2)
+    }
+
+    // MARK: - [헬퍼 서브뷰] 리뷰 본문 카드
+    private var reviewContentCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("방문자 솔직 후기")
+                .font(.system(size: 14, weight: .bold))
+
+            // 줄 간격 6포인트의 가독성 높은 본문 텍스트
+            Text(review.content)
+                .font(.system(size: 15))
+                .lineSpacing(6)
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - [헬퍼 서브뷰] 하단 식당 상세 바로가기 카드
+    private var restaurantDirectLinkCard: some View {
+        Button {
+            // 식당 상세 모달 시트 오픈 콜백 실행
+            onSelectRestaurant?(restaurant)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 20))
+                    .foregroundStyle(Color.orange)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(restaurant.name)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.primary)
+
+                    Text(restaurant.address)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Text("식당 정보")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.gray)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.gray)
+            }
+            .padding(14)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -249,7 +230,7 @@ struct FeedPostDetailView: View {
     .preferredColorScheme(.light)
 }
 
-#Preview("피드 게시글 상세 - 다크") {
+#Preview("피드 게시글 상세 - 라이트") {
     NavigationStack {
         FeedPostDetailView(
             restaurant: RestaurantViewModel().restaurants[0],
