@@ -2,15 +2,15 @@
 //  HomeFeedView.swift
 //  project2
 //
-//  전라도 광주 지역 한정 숨은 맛집 피드 화면
-//  (성능 최적화: LazyVStack 적용 및 서브뷰 분리)
+//  전라도 광주 지역 한정 방문자 리뷰 탐색 홈 피드 화면 (Apple HIG 규격화 & 피드 검색 바 탑재)
+//  (성능 최적화: 당겨서 새로고침, LazyVStack 지연 로딩, 서브뷰 분리, 불필요한 바인딩 제거)
 //
 
 import SwiftUI
 
-// MARK: - 홈 피드 메인 화면 뷰
+// MARK: - [메인 뷰 컴포넌트] 홈 피드 화면 (Apple HIG 준수)
 struct HomeFeedView: View {
-    // MARK: 시스템 라이트/다크모드 감지
+    // MARK: 시스템 라이트/다크모드 환경 감지
     @Environment(\.colorScheme) private var colorScheme
 
     // MARK: 식당 데이터 및 필터 상태를 공유하는 맛집 뷰모델
@@ -29,14 +29,17 @@ struct HomeFeedView: View {
         // 독립적인 네비게이션 스택 컨테이너
         NavigationStack(path: $navigationPath) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                LazyVStack(alignment: .leading, spacing: 16) {
                     // MARK: 1. 상단 지역 인디케이터 배지 및 메인 타이틀 영역
                     headerView
 
-                    // MARK: 2. 광주 주요 상권 필터 바 서브뷰
+                    // MARK: 2. 피드 전용 통합 검색 바 (식당, 리뷰, 메뉴, 작성자)
+                    feedSearchBar
+
+                    // MARK: 3. 광주 주요 상권 필터 바 서브뷰
                     FeedDistrictFilterBar(viewModel: viewModel)
 
-                    // MARK: 3. 이웃들이 공유한 방문자 리뷰 피드 목록
+                    // MARK: 4. 이웃들이 공유한 방문자 리뷰 피드 목록
                     feedCardListView
                 }
                 .padding(.bottom, 60)
@@ -70,11 +73,11 @@ struct HomeFeedView: View {
             // 지역 인디케이터 배지
             HStack(spacing: 6) {
                 Image(systemName: "location.circle.fill")
-                    .font(.system(size: 13))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.orange)
 
                 Text("광주광역시 한정 피드")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(Color.orange)
 
                 Spacer()
@@ -84,18 +87,51 @@ struct HomeFeedView: View {
             .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
             .clipShape(Capsule())
 
-            // 피드 대표 타이틀 및 서브 타이틀
+            // 피드 대표 타이틀 및 서브 타이틀 (Apple HIG Semantic Typography)
             VStack(alignment: .leading, spacing: 4) {
                 Text("광주 맛집 피드 & 찐리뷰")
-                    .font(.system(size: 22, weight: .bold))
+                    .font(.title2.weight(.bold))
 
                 Text("전라도 광주 이웃들의 솔직한 실시간 방문 후기")
-                    .font(.system(size: 13))
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
         }
         .padding(.horizontal, 16)
         .padding(.top, 56)
+    }
+
+    // MARK: - [헬퍼 서브뷰] 피드 전용 검색 바 (Apple HIG 규격: 최소 터치 높이 44pt)
+    private var feedSearchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.headline)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.secondary)
+
+            TextField("식당, 리뷰 키워드, 메뉴, 작성자 검색", text: $viewModel.feedSearchQuery)
+                .font(.subheadline)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+            if !viewModel.feedSearchQuery.isEmpty {
+                Button {
+                    viewModel.feedSearchQuery = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(minHeight: 44)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
     }
 
     // MARK: - [헬퍼 서브뷰] 리뷰 카드 리스트 영역
@@ -104,12 +140,13 @@ struct HomeFeedView: View {
             // 섹션 헤더 (자치구명 및 식당 건수)
             HStack {
                 Text("🔥 \(viewModel.selectedFeedDistrict == .all ? "광주 전체" : viewModel.selectedFeedDistrict.rawValue) 이웃 리뷰 피드")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.headline)
 
                 Spacer()
 
                 Text("\(viewModel.filteredFeedRestaurants.count)곳")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.subheadline.weight(.medium))
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 16)
@@ -137,17 +174,27 @@ struct HomeFeedView: View {
     private var emptyFeedNoticeView: some View {
         VStack(spacing: 10) {
             Spacer()
-            Image(systemName: "newspaper")
+            Image(systemName: viewModel.feedSearchQuery.isEmpty ? "newspaper" : "magnifyingglass")
                 .font(.system(size: 38))
                 .foregroundStyle(.tertiary)
 
-            Text("아직 \(viewModel.selectedFeedDistrict.rawValue)에 등록된 리뷰가 없습니다.")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
+            if viewModel.feedSearchQuery.isEmpty {
+                Text("아직 \(viewModel.selectedFeedDistrict.rawValue)에 등록된 리뷰가 없습니다.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
 
-            Text("다른 자치구를 선택해보세요.")
-                .font(.system(size: 12))
-                .foregroundStyle(.tertiary)
+                Text("다른 자치구를 선택해보세요.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            } else {
+                Text("'\(viewModel.feedSearchQuery)' 검색 결과가 없습니다.")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                Text("다른 검색어나 메뉴명을 입력해보세요.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
             Spacer()
         }
         .frame(maxWidth: .infinity, minHeight: 180)

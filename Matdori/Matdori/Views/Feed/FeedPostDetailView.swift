@@ -27,14 +27,14 @@ struct FeedPostDetailView: View {
                 // MARK: 1. 작성자 프로필 헤더 영역
                 authorProfileHeader
 
+                // MARK: 4. 음식 사진 2분할 갤러리 서브뷰
+                FeedPhotoGalleryView(restaurant: restaurant, review: review)
+                
                 // MARK: 2. 5점 별점 및 식당 이름 + 방문 날짜 배지
                 ratingAndDateBadge
 
                 // MARK: 3. 솔직 방문자 리뷰 본문 카드
                 reviewContentCard
-
-                // MARK: 4. 음식 사진 2분할 갤러리 서브뷰
-                FeedPhotoGalleryView(restaurant: restaurant, review: review)
 
                 // MARK: 5. 하단 식당 상세페이지 바로가기 카드
                 restaurantDirectLinkCard
@@ -80,9 +80,6 @@ struct FeedPostDetailView: View {
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.primary)
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Color.gray.opacity(0.6))
                 }
 
                 // 방문 이력 통계 (방문 횟수, 총 리뷰 수, 평균 별점)
@@ -115,19 +112,7 @@ struct FeedPostDetailView: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.primary)
 
-//                Text("•")
-//                    .foregroundStyle(.secondary)
-//
-//                Text(restaurant.category.rawValue)
-//                    .font(.system(size: 12))
-//                    .foregroundStyle(.secondary)
-//
-//                Text("•")
-//                    .foregroundStyle(.secondary)
-//
-//                Text(restaurant.district.rawValue)
-//                    .font(.system(size: 12))
-//                    .foregroundStyle(.secondary)
+
             }
             
             

@@ -23,10 +23,8 @@ struct FeedDistrictFilterBar: View {
                 // 광주 5대 상권 및 '전체' 열거형 순회
                 ForEach(GwangjuDistrict.allCases) { district in
                     Button {
-                        // 탄력 있는 스프링 애니메이션과 함께 선택된 자치구 갱신
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                            viewModel.selectedFeedDistrict = district
-                        }
+                        // 애니메이션 딜레이 없이 즉각적인 자치구 필터 갱신
+                        viewModel.selectedFeedDistrict = district
                     } label: {
                         // 자치구 명칭 텍스트 (Apple HIG Semantic Typography: subheadline)
                         Text(district.rawValue)

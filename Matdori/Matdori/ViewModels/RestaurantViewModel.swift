@@ -29,6 +29,9 @@ final class RestaurantViewModel {
     // MARK: 주변 맛집 지역/음식/식당 통합 검색어
     var searchQuery: String = ""
 
+    // MARK: 피드 화면 전용 검색어 (주변 탭 검색어와 독립 분리)
+    var feedSearchQuery: String = ""
+
     // MARK: 주변 맛집 정렬 옵션 (기본값: 거리순)
     var sortOption: NearbySortOption = .distance
 
@@ -90,12 +93,31 @@ final class RestaurantViewModel {
         }
     }
 
-    // 피드 목록 필터링 (선택된 광주 자치구 적용 - 전라도 광주 한정)
+    // 피드 목록 필터링 (선택된 광주 자치구 + 피드 검색어 다중 필드 매칭)
     var filteredFeedRestaurants: [Restaurant] {
-        if selectedFeedDistrict == .all {
-            return restaurants
+        var list = restaurants
+
+        // 1. 광주 자치구 필터 적용
+        if selectedFeedDistrict != .all {
+            list = list.filter { $0.district == selectedFeedDistrict }
         }
-        return restaurants.filter { $0.district == selectedFeedDistrict }
+
+        // 2. 피드 검색어 필터 (고속 패스: 비어있을 때 즉시 반환)
+        let query = feedSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !query.isEmpty {
+            list = list.filter { r in
+                let matchName = r.name.lowercased().contains(query)
+                let matchDistrict = r.district.rawValue.lowercased().contains(query)
+                let matchCategory = r.category.rawValue.lowercased().contains(query)
+                let matchMenu = r.menus.contains { $0.name.lowercased().contains(query) }
+                let matchReview = r.reviews.contains {
+                    $0.content.lowercased().contains(query) || $0.authorName.lowercased().contains(query)
+                }
+                return matchName || matchDistrict || matchCategory || matchMenu || matchReview
+            }
+        }
+
+        return list
     }
 
     // MARK: - 비즈니스 로직 메서드
