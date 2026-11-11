@@ -3,6 +3,7 @@
 //  project2
 //
 //  나의 맛집 상세 화면의 나의 별점 평가 및 개인 메모 편집 섹션 (Apple HIG 규격화)
+//  (FocusState 기반 키보드 제어 및 시각적 피드백 탑재)
 //
 
 import SwiftUI
@@ -29,6 +30,9 @@ struct MyRestaurantRecordSection: View {
 
     // MARK: 메모 변경 시 뷰모델 동기화 콜백
     var onNoteChange: (String) -> Void
+
+    // MARK: 텍스트필드 키보드 포커스 상태 (Apple HIG FocusState)
+    @FocusState private var isNoteFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -151,7 +155,7 @@ struct MyRestaurantRecordSection: View {
             Divider()
                 .padding(.vertical, 2)
 
-            // MARK: 4. 나만의 메모 작성 다중 행 텍스트필드 (HIG 텍스트 필드 규격)
+            // MARK: 4. 나만의 메모 작성 다중 행 텍스트필드 (HIG 텍스트 필드 규격 및 FocusState)
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "square.and.pencil")
@@ -164,8 +168,28 @@ struct MyRestaurantRecordSection: View {
 
                     Spacer()
 
-                    // 글자 수 실시간 표출 (Semantic Caption2)
-                    if !currentMyNote.isEmpty {
+                    // 키보드가 활성화되었을 때 키보드 내리기 버튼 제공 (HIG 인터랙션)
+                    if isNoteFocused {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isNoteFocused = false
+                            }
+                        } label: {
+                            HStack(spacing: 2) {
+                                Image(systemName: "keyboard.chevron.compact.down")
+                                    .font(.caption2)
+                                Text("완료")
+                                    .font(.caption.weight(.semibold))
+                            }
+                            .foregroundStyle(Color.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                            .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    } else if !currentMyNote.isEmpty {
+                        // 글자 수 실시간 표출 (Semantic Caption2)
                         Text("\(currentMyNote.count)자")
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
@@ -175,12 +199,18 @@ struct MyRestaurantRecordSection: View {
                 TextField("나만의 맛집 팁, 추천 메뉴, 재방문 의사 등을 자유롭게 메모해보세요.", text: $currentMyNote, axis: .vertical)
                     .lineLimit(5...8)
                     .font(.body)
+                    .focused($isNoteFocused) // FocusState 키보드 포커스 바인딩
                     .padding(12)
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), lineWidth: 1)
+                            .stroke(
+                                isNoteFocused
+                                ? Color.orange
+                                : (colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08)),
+                                lineWidth: isNoteFocused ? 1.5 : 1
+                            )
                     )
                     .onChange(of: currentMyNote) { _, newValue in
                         // 메모 변경 시 뷰모델로 즉시 저장 위임
