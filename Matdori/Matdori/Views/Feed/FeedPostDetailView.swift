@@ -27,13 +27,13 @@ struct FeedPostDetailView: View {
                 // MARK: 1. 작성자 프로필 헤더 영역
                 authorProfileHeader
 
-                // MARK: 4. 음식 사진 2분할 갤러리 서브뷰
+                // MARK: 2. 음식 사진 스마트 갤러리 서브뷰
                 FeedPhotoGalleryView(restaurant: restaurant, review: review)
-                
-                // MARK: 2. 5점 별점 및 식당 이름 + 방문 날짜 배지
+
+                // MARK: 3. 5점 별점 및 식당 이름 + 방문 날짜 배지
                 ratingAndDateBadge
 
-                // MARK: 3. 솔직 방문자 리뷰 본문 카드
+                // MARK: 4. 솔직 방문자 리뷰 본문 카드
                 reviewContentCard
 
                 // MARK: 5. 하단 식당 상세페이지 바로가기 카드
@@ -79,7 +79,6 @@ struct FeedPostDetailView: View {
                     Text(review.authorName)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.primary)
-
                 }
 
                 // 방문 이력 통계 (방문 횟수, 총 리뷰 수, 평균 별점)
@@ -101,7 +100,6 @@ struct FeedPostDetailView: View {
     // MARK: - [헬퍼 서브뷰] 별점 및 방문 날짜 배지
     private var ratingAndDateBadge: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
             // 식당 이름, 카테고리, 자치구 태그 행
             HStack(spacing: 6) {
                 Image(systemName: "fork.knife")
@@ -111,11 +109,9 @@ struct FeedPostDetailView: View {
                 Text(restaurant.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.primary)
-
-
             }
-            
-            
+
+            // 1~5점 별점 렌더링 및 방문 날짜
             HStack(spacing: 4) {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
@@ -135,7 +131,6 @@ struct FeedPostDetailView: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
-
         }
         .padding(14)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
@@ -215,7 +210,7 @@ struct FeedPostDetailView: View {
     .preferredColorScheme(.light)
 }
 
-#Preview("피드 게시글 상세 - 라이트") {
+#Preview("피드 게시글 상세 - 다크") {
     NavigationStack {
         FeedPostDetailView(
             restaurant: RestaurantViewModel().restaurants[0],

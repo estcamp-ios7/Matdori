@@ -47,8 +47,16 @@ struct CategoryFilterBar: View {
 }
 
 // MARK: - 프리뷰
-#Preview("카테고리 필터 바") {
+#Preview("카테고리 필터 바 - 라이트") {
     @Previewable @State var selected: FoodCategory = .all
     CategoryFilterBar(selectedCategory: $selected)
         .padding(.vertical)
+        .preferredColorScheme(.light)
+}
+
+#Preview("카테고리 필터 바 - 다크") {
+    @Previewable @State var selected: FoodCategory = .korean
+    CategoryFilterBar(selectedCategory: $selected)
+        .padding(.vertical)
+        .preferredColorScheme(.dark)
 }

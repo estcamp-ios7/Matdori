@@ -3,7 +3,7 @@
 //  project2
 //
 //  나의 맛집 상세 페이지 (Apple HIG 터치 타깃 및 Dynamic Type 규격화)
-//  (서브뷰 MyRestaurantRecordSection 분리 및 레거시 코드 정리)
+//  (단일 트랜잭션 일괄 커밋 파이프라인 탑재)
 //
 
 import SwiftUI
@@ -20,6 +20,9 @@ struct MyRestaurantDetailView: View {
     // MARK: 대상 식당 정보
     var restaurant: Restaurant
 
+    // MARK: 방문 상태 버퍼 (가고 싶은 곳 vs 다녀온 곳)
+    @State private var currentVisitStatus: MyVisitStatus
+
     // MARK: 내가 준 별점 상태 (1~5점 또는 nil)
     @State private var currentMyRating: Int?
 
@@ -31,6 +34,7 @@ struct MyRestaurantDetailView: View {
         self.viewModel = viewModel
         self.restaurant = restaurant
         let currentItem = viewModel.restaurants.first(where: { $0.id == restaurant.id }) ?? restaurant
+        _currentVisitStatus = State(initialValue: currentItem.visitStatus)
         _currentMyRating = State(initialValue: currentItem.myRating)
         _currentMyNote = State(initialValue: currentItem.myNote)
     }
@@ -47,20 +51,23 @@ struct MyRestaurantDetailView: View {
                     baseRatingView
                         .padding(.horizontal, 16)
 
-                    // MARK: 3. 상단 지도 및 대표 사진 영역
-                    topMapWireframeView
+                    // MARK: 3. 상단 대표 음식 사진 영역
+                    topPhotoHeaderView
                         .padding(.horizontal, 16)
 
-                    // MARK: 4. 나만의 맛집 기록 서브뷰 (별점 및 메모)
+                    // MARK: 4. 나만의 맛집 기록 서브뷰 (방문상태, 별점 및 메모)
                     MyRestaurantRecordSection(
                         restaurantId: restaurant.id,
+                        currentVisitStatus: $currentVisitStatus,
                         currentMyRating: $currentMyRating,
                         currentMyNote: $currentMyNote,
                         onRatingChange: { newRating in
-                            viewModel.updateMyRating(id: restaurant.id, rating: newRating)
+                            // 실시간 임시 반영
+                            currentMyRating = newRating
                         },
                         onNoteChange: { newNote in
-                            viewModel.updateMyNote(id: restaurant.id, note: newNote)
+                            // 실시간 텍스트 동기화
+                            currentMyNote = newNote
                         }
                     )
                     .padding(.horizontal, 16)
@@ -85,9 +92,16 @@ struct MyRestaurantDetailView: View {
                     }
                 }
 
-                // 상단 우측 완료 버튼 (HIG Label titleAndIcon 표준)
+                // 상단 우측 완료 버튼 (단일 트랜잭션 일괄 커밋 파이프라인)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        // MARK: [파이프라인] 뷰모델 일괄 커밋 실행
+                        viewModel.commitMyRestaurantRecord(
+                            id: restaurant.id,
+                            visitStatus: currentVisitStatus,
+                            rating: currentMyRating,
+                            note: currentMyNote
+                        )
                         dismiss()
                     } label: {
                         Label("완료", systemImage: "checkmark")
@@ -140,22 +154,40 @@ struct MyRestaurantDetailView: View {
         }
     }
 
-    // MARK: - [헬퍼 서브뷰] 지도 와이어프레임 뷰
-    private var topMapWireframeView: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(uiColor: .tertiarySystemGroupedBackground))
-                .frame(height: 180)
-
-            VStack(spacing: 8) {
-                Image(systemName: "map")
-                    .font(.largeTitle)
-                    .foregroundStyle(Color.gray.opacity(0.5))
-                Text("지도 영역: \(restaurant.name)")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+    // MARK: - [헬퍼 서브뷰] 상단 대표 사진 영역
+    private var topPhotoHeaderView: some View {
+        ZStack(alignment: .bottomLeading) {
+            if let uiImage = UIImage(named: restaurant.representativePhotoName) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 180)
+                    .clipped()
+            } else {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(uiColor: .tertiarySystemGroupedBackground))
+                    .frame(height: 180)
             }
+
+            LinearGradient(
+                colors: [Color.clear, Color.black.opacity(0.6)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+
+            HStack(spacing: 6) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.caption)
+                Text(restaurant.address)
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundStyle(.white)
+            .padding(12)
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: 180)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 

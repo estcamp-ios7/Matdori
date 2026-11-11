@@ -2,135 +2,94 @@
 //  FeedPhotoGalleryView.swift
 //  project2
 //
-//  피드 게시글 상세 화면의 음식 사진 및 카테고리 갤러리 서브뷰 (블로그 리뷰 스타일 & Apple HIG 규격화)
+//  피드 게시글 상세 화면의 방문자 실제 음식 사진 및 스마트 갤러리 서브뷰
+//  (사진 원본 가로세로 비율 최적화: scaledToFill + maxHeight: 240 제한)
 //
 
 import SwiftUI
 
-// MARK: - [서브뷰 컴포넌트] 음식 사진 갤러리 뷰 (스마트 동적 렌더링)
+// MARK: - [서브뷰 컴포넌트] 음식 사진 스마트 갤러리 뷰
 struct FeedPhotoGalleryView: View {
-    // MARK: 시스템 라이트/다크모드 감지
+    // MARK: 다크모드 환경 감지
     @Environment(\.colorScheme) private var colorScheme
 
-    // MARK: 카테고리 심볼 표출용 식당 모델
+    // MARK: 상세 식당 및 리뷰 데이터
     let restaurant: Restaurant
-
-    // MARK: 첨부 사진이 포함된 커뮤니티 리뷰 모델
     let review: CommunityReview
 
-    // MARK: 실제 이미지 에셋 존재 여부 연산 프로퍼티
-    private var hasActualPhoto: Bool {
-        guard let photoName = review.photoName else { return false }
-        return UIImage(named: photoName) != nil
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // MARK: 갤러리 헤더 타이틀 (Apple HIG Semantic Headline)
-            HStack {
-                Text(hasActualPhoto ? "방문 인증 사진" : "메뉴 카테고리")
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                if hasActualPhoto {
-                    Text("1장")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            // MARK: 사진 유무에 따른 스마트 카드 렌더링
-            if let photoName = review.photoName, let uiImage = UIImage(named: photoName) {
-                // 실제 음식 사진이 등록되어 있을 때: 블로그 리뷰 스타일 적응형 카드
-                actualPhotoCard(image: uiImage)
+        VStack(alignment: .leading, spacing: 8) {
+            // MARK: 리뷰에 등록된 실제 음식 사진이 존재하는 경우 (와이드~정방형 원본 비율 대응)
+            if let photoName = review.photoName,
+               let uiImage = UIImage(named: photoName) {
+                photoCardView(image: uiImage)
             } else {
-                // 사진 에셋이 없을 때: 본문 가독성을 살리는 컴팩트 웜톤 배너
-                categoryBannerCard
+                // MARK: 첨부 사진이 없는 경우 깔끔한 카테고리 대표 컴팩트 배너 제공
+                emptyPhotoFallbackBanner
             }
         }
     }
 
-    // MARK: - [헬퍼 서브뷰] 실제 인증 사진 카드 (블로그 리뷰 스타일: 원본 비율 보존 + 최대 높이 240pt 제한)
-    private func actualPhotoCard(image: UIImage) -> some View {
-        ZStack(alignment: .bottomLeading) {
+    // MARK: - [헬퍼 서브뷰] 원본 비율 최적화 블로그 스타일 사진 카드
+    private func photoCardView(image: UIImage) -> some View {
+        ZStack(alignment: .bottomTrailing) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: .infinity)
-                .frame(maxHeight: 240)
+                .frame(maxHeight: 240) // 가로 비율을 살리면서 화면 세로를 과도하게 차지하지 않도록 240pt 제한
                 .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 14))
 
-            // 사진 하단 반투명 그라데이션 오버레이
-            LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.65)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-
-            // 좌하단 사진 안내 캡슐 배지 (HIG Semantic Caption2 Bold)
-            HStack(spacing: 6) {
+            // 우하단 원본 사진 인증 배지 (가독성을 위한 반투명 캡슐 배지)
+            HStack(spacing: 4) {
                 Image(systemName: "camera.fill")
                     .font(.caption2)
-                    .symbolRenderingMode(.hierarchical)
-                Text("\(restaurant.name) • 방문 인증 컷")
-                    .font(.caption2.weight(.bold))
+                Text("방문자 촬영 사진")
+                    .font(.caption2.weight(.medium))
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.black.opacity(0.6))
             .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Color.black.opacity(0.45))
             .clipShape(Capsule())
-            .padding(12)
+            .padding(10)
         }
         .frame(maxWidth: .infinity)
         .frame(maxHeight: 240)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06), lineWidth: 1)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), lineWidth: 1)
         )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 6, x: 0, y: 3)
     }
 
-    // MARK: - [헬퍼 서브뷰] 사진 미등록 시 컴팩트 카테고리 배너 (높이 90pt)
-    private var categoryBannerCard: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.95, green: 0.68, blue: 0.32).opacity(colorScheme == .dark ? 0.35 : 0.25),
-                    Color(red: 0.82, green: 0.44, blue: 0.18).opacity(colorScheme == .dark ? 0.45 : 0.3)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+    // MARK: - [헬퍼 서브뷰] 사진 미등록 시 표시되는 카테고리 대표 컴팩트 배너
+    private var emptyPhotoFallbackBanner: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                    .frame(width: 44, height: 44)
 
-            HStack(spacing: 14) {
-                Image(systemName: restaurant.category == .dessert ? "birthday.cake.fill" : "fork.knife")
-                    .font(.title)
-                    .symbolRenderingMode(.hierarchical)
+                Image(systemName: restaurant.category.iconName)
+                    .font(.title3)
                     .foregroundStyle(Color.orange)
-                    .padding(12)
-                    .background(Color.orange.opacity(0.15))
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(restaurant.category.rawValue) 전문점")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.primary)
-
-                    Text("\(restaurant.name)의 정갈한 메뉴를 만나보세요")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
             }
-            .padding(.horizontal, 16)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(restaurant.category.rawValue) 전문점 • \(restaurant.name)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                Text("작성자가 등록한 사진이 없습니다.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 90)
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
@@ -165,4 +124,13 @@ struct FeedPhotoGalleryView: View {
     )
     .padding()
     .preferredColorScheme(.light)
+}
+
+#Preview("피드 사진 갤러리 - 사진 미등록 (다크)") {
+    FeedPhotoGalleryView(
+        restaurant: RestaurantViewModel().restaurants[0],
+        review: RestaurantViewModel().restaurants[0].reviews[1]
+    )
+    .padding()
+    .preferredColorScheme(.dark)
 }

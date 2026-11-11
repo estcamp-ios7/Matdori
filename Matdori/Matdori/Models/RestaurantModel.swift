@@ -56,8 +56,17 @@ struct Restaurant: Identifiable, Codable {
 
     // MARK: 사용자 개인화 상태
     var isSaved: Bool = false                // '나의 맛집' 저장 여부
+    var visitStatus: MyVisitStatus = .wantToGo // 방문 상태 (가고 싶은 곳 vs 다녀온 곳)
     var myRating: Int? = nil                 // 내가 매긴 별점 (1~5점)
     var myNote: String = ""                  // 개인 메모
+
+    // MARK: 마이페이지 3열 사진 그리드 표출용 대표 사진 연산 프로퍼티
+    var representativePhotoName: String {
+        if let reviewPhoto = reviews.first(where: { $0.photoName != nil })?.photoName {
+            return reviewPhoto
+        }
+        return category.defaultPhotoName
+    }
 
     // MARK: 포맷팅된 거리 문자열 (예: 100m, 1.2km)
     var distanceText: String {
@@ -88,6 +97,7 @@ struct Restaurant: Identifiable, Codable {
         menus: [MenuItem],
         reviews: [CommunityReview],
         isSaved: Bool = false,
+        visitStatus: MyVisitStatus = .wantToGo,
         myRating: Int? = nil,
         myNote: String = ""
     ) {
@@ -105,6 +115,7 @@ struct Restaurant: Identifiable, Codable {
         self.menus = menus
         self.reviews = reviews
         self.isSaved = isSaved
+        self.visitStatus = visitStatus
         self.myRating = myRating
         self.myNote = myNote
     }
@@ -129,6 +140,7 @@ struct Restaurant: Identifiable, Codable {
         self.menus = try container.decode([MenuItem].self, forKey: .menus)
         self.reviews = try container.decode([CommunityReview].self, forKey: .reviews)
         self.isSaved = false
+        self.visitStatus = .wantToGo
         self.myRating = nil
         self.myNote = ""
     }

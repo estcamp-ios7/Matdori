@@ -2,14 +2,14 @@
 //  RestaurantTypes.swift
 //  project2
 //
-//  음식 카테고리, 광주광역시 상권/자치구, 정렬 옵션 열거형 정의
+//  음식 카테고리, 광주광역시 상권/자치구, 정렬 옵션, 마이페이지 탭 및 방문 상태 열거형 정의
 //
 
 import Foundation
 import CoreLocation
 
 // MARK: - 음식 카테고리 열거형
-enum FoodCategory: String, CaseIterable, Identifiable, Codable {
+enum FoodCategory: String, CaseIterable, Identifiable, Codable, Sendable {
     case all = "전체"
     case korean = "한식"
     case chinese = "중식"
@@ -31,10 +31,22 @@ enum FoodCategory: String, CaseIterable, Identifiable, Codable {
             return "storefront.fill"
         }
     }
+
+    // MARK: 카테고리별 기본 대표 에셋 이미지명 (그리드 표출용)
+    var defaultPhotoName: String {
+        switch self {
+        case .korean, .all: return "korean_food_1"
+        case .chinese: return "chinese_food_1"
+        case .japanese: return "japanese_food_1"
+        case .westen: return "etc_food_1"
+        case .dessert: return "dessert_food_1"
+        case .etc: return "etc_food_2"
+        }
+    }
 }
 
 // MARK: - 광주광역시 주요 상권 및 지역 구분 열거형 (전라도 광주 한정)
-enum GwangjuDistrict: String, CaseIterable, Identifiable, Codable {
+enum GwangjuDistrict: String, CaseIterable, Identifiable, Codable, Sendable {
     case all = "전체"
     case yongbong = "용봉동"     // 북구
     case dongmyeong = "동명동"   // 동구
@@ -69,7 +81,7 @@ enum GwangjuDistrict: String, CaseIterable, Identifiable, Codable {
 }
 
 // MARK: - 주변 맛집 정렬 옵션 열거형
-enum NearbySortOption: String, CaseIterable, Identifiable {
+enum NearbySortOption: String, CaseIterable, Identifiable, Sendable {
     case distance = "거리순"
     case rating = "평점순"
 
@@ -81,4 +93,29 @@ enum NearbySortOption: String, CaseIterable, Identifiable {
         case .rating: return "star.fill"
         }
     }
+}
+
+// MARK: - 나의 맛집 방문 기록 상태 열거형 (가고 싶은 곳 vs 다녀온 곳)
+enum MyVisitStatus: String, CaseIterable, Identifiable, Codable, Sendable {
+    case wantToGo = "가고 싶은 곳" // 찜만 해둔 상태
+    case visited = "다녀온 곳"     // 실제 방문 완료 상태
+
+    var id: String { rawValue }
+}
+
+// MARK: - 마이페이지 나의 맛집 기록 탭 열거형 (리뷰, 다녀온 곳, 가고 싶은 곳)
+enum MyRecordTab: String, CaseIterable, Identifiable, Sendable {
+    case review = "리뷰"
+    case visited = "다녀온 곳"
+    case wantToGo = "가고 싶은 곳"
+
+    var id: String { rawValue }
+}
+
+// MARK: - 마이페이지 뷰 모드 열거형 (3열 사진 그리드 vs 리스트)
+enum MyListViewMode: String, CaseIterable, Identifiable, Sendable {
+    case grid = "그리드"
+    case list = "리스트"
+
+    var id: String { rawValue }
 }
