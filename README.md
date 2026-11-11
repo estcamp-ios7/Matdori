@@ -13,11 +13,17 @@
 
 
 ## Support version
-- Xcode27.2
-- iOS27.2 
+- Xcode 27.2
+- iOS 27.2 
 
 ## Credits
-- [Ned Park](https://africastart.com)
+- 정서해
+- 장호
+- 김재식
+- 김현호
+- 박영광
+
+
 
 ### License
 Licensed under the [MIT](LICENSE) license.
