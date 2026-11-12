@@ -13,7 +13,7 @@
 
 
 ## Support version
-- Xcode 27.2
+- Xcode 27.0
 - iOS 27.2 
 
 ## Credits
