@@ -3,7 +3,7 @@
 //  project2
 //
 //  나의 맛집 상세 화면의 나의 별점 평가 및 개인 메모 편집 섹션 (Apple HIG 규격화)
-//  (FocusState 기반 키보드 제어 및 시각적 피드백 탑재)
+//  (FocusState 기반 키보드 제어 및 방문 상태 단일 토글 버튼 탑재)
 //
 
 import SwiftUI
@@ -58,42 +58,63 @@ struct MyRestaurantRecordSection: View {
                 }
             }
 
-            // MARK: 2. 방문 상태 토글 (가고 싶은 곳 vs 다녀온 곳 - Apple HIG 세그먼트 스타일)
+            // MARK: 2. 방문 상태 토글 (단일 버튼 통합 & MyRestaurantListView 스타일의 SF Symbol 적용)
             VStack(alignment: .leading, spacing: 6) {
                 Text("방문 여부")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
 
-                HStack(spacing: 8) {
-                    ForEach(MyVisitStatus.allCases) { status in
-                        Button {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                currentVisitStatus = status
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: status == .visited ? "checkmark.circle.fill" : "bookmark.fill")
-                                    .font(.subheadline)
-                                Text(status.rawValue)
-                                    .font(.subheadline.weight(currentVisitStatus == status ? .bold : .medium))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(minHeight: 44) // Apple HIG 최소 터치 높이 44pt 보장
-                            .background(
-                                currentVisitStatus == status
-                                ? Color.orange
-                                : Color(uiColor: .secondarySystemGroupedBackground)
-                            )
-                            .foregroundStyle(
-                                currentVisitStatus == status
-                                ? Color.white
-                                : Color.primary
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
-                        .buttonStyle(.plain)
+                Button {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                        currentVisitStatus = (currentVisitStatus == .visited ? .wantToGo : .visited)
                     }
+                } label: {
+                    HStack(spacing: 10) {
+                        // SF Symbol 아이콘 (다녀온 곳: checkmark.seal.fill, 가고 싶은 곳: bookmark.fill)
+                        Image(systemName: currentVisitStatus == .visited ? "checkmark.seal.fill" : "bookmark.fill")
+                            .font(.headline)
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(currentVisitStatus == .visited ? Color.white : Color.orange)
+
+                        // 방문 상태 텍스트 및 서브 안내
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(currentVisitStatus.rawValue)
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(currentVisitStatus == .visited ? Color.white : Color.primary)
+
+                            Text(currentVisitStatus == .visited ? "실제 방문을 완료한 맛집입니다" : "아직 방문 전 찜해둔 맛집입니다")
+                                .font(.caption2)
+                                .foregroundStyle(currentVisitStatus == .visited ? Color.white.opacity(0.85) : Color.secondary)
+                        }
+
+                        Spacer()
+
+                        // 상호 전환 안내 순환 아이콘
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(currentVisitStatus == .visited ? Color.white.opacity(0.8) : Color.secondary)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 48) // Apple HIG 최소 터치 높이 44pt 보장
+                    .background(
+                        currentVisitStatus == .visited
+                        ? Color.orange
+                        : Color(uiColor: .secondarySystemGroupedBackground)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(
+                                currentVisitStatus == .visited
+                                ? Color.clear
+                                : (colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08)),
+                                lineWidth: 1
+                            )
+                    )
                 }
+                .buttonStyle(.plain)
             }
 
             Divider()

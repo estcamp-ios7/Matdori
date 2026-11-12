@@ -3,7 +3,7 @@
 //  project2
 //
 //  나의 맛집 상세 페이지 (Apple HIG 터치 타깃 및 Dynamic Type 규격화)
-//  (단일 트랜잭션 일괄 커밋 파이프라인 탑재)
+//  (단일 트랜잭션 일괄 커밋 파이프라인 탑재 및 뒤로가기 취소 확인 Alert 지원)
 //
 
 import SwiftUI
@@ -32,6 +32,9 @@ struct MyRestaurantDetailView: View {
     // MARK: 대표 사진 전체 화면 표시 상태
     @State private var isShowingPhotoViewer = false
 
+    // MARK: 변경사항 취소 확인 Alert 표시 상태
+    @State private var showDiscardAlert = false
+
     // MARK: 초기화 구문: 뷰모델의 최신 값으로 로컬 상태 동기화
     init(viewModel: RestaurantViewModel, restaurant: Restaurant) {
         self.viewModel = viewModel
@@ -43,18 +46,22 @@ struct MyRestaurantDetailView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
+        NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    // MARK: 1. 식당 이름 및 카테고리 태그 헤더
                     headerView
                         .padding(.horizontal, 16)
 
+                    // MARK: 2. 기본 별점 (방문자 평가 평균)
                     baseRatingView
                         .padding(.horizontal, 16)
 
+                    // MARK: 3. 상단 대표 음식 사진 영역
                     topPhotoHeaderView
                         .padding(.horizontal, 16)
 
+                    // MARK: 4. 나만의 맛집 기록 서브뷰 (방문상태, 별점 및 메모)
                     MyRestaurantRecordSection(
                         restaurantId: restaurant.id,
                         currentVisitStatus: $currentVisitStatus,
@@ -66,63 +73,62 @@ struct MyRestaurantDetailView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 40)
                 }
-                .padding(.top, 88)
+                .padding(.top, 16)
             }
             .scrollIndicators(.hidden)
             .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+            .navigationTitle("나의 맛집 상세")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                // MARK: 상단 좌측 뒤로가기 버튼 (Label 및 뒤로가기 Alert 연결)
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showDiscardAlert = true
+                    } label: {
+                        Label("뒤로", systemImage: "chevron.left")
+                            .labelStyle(.titleAndIcon)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                }
 
-            detailNavigationHeader
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .background(Color(uiColor: .systemBackground).ignoresSafeArea(edges: .top))
+                // MARK: 상단 우측 완료 버튼 (Label 및 일괄 커밋 파이프라인 연결)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        viewModel.commitMyRestaurantRecord(
+                            id: restaurant.id,
+                            visitStatus: currentVisitStatus,
+                            rating: currentMyRating,
+                            note: currentMyNote
+                        )
+                        dismiss()
+                    } label: {
+                        Label("완료", systemImage: "checkmark")
+                            .labelStyle(.titleAndIcon)
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(Color.orange)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
+                    }
+                }
+            }
+            // MARK: 뒤로가기 시 변경사항 취소 확인 Alert
+            .alert("변경사항을 취소하시겠습니까?", isPresented: $showDiscardAlert) {
+                Button("계속 작성", role: .cancel) { }
+                Button("나가기", role: .destructive) {
+                    dismiss()
+                }
+            } message: {
+                Text("저장하지 않은 별점 및 메모 변경사항이 사라집니다.")
+            }
         }
         .fullScreenCover(isPresented: $isShowingPhotoViewer) {
             if let uiImage = UIImage(named: restaurant.representativePhotoName) {
                 RestaurantPhotoViewer(image: uiImage)
             }
         }
-    }
-
-    private var detailNavigationHeader: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .frame(width: 66, height: 66)
-                    .background(Color(uiColor: .systemBackground), in: Circle())
-                    .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
-            }
-            .accessibilityLabel("뒤로")
-
-            Spacer()
-
-            Text("나의 맛집 상세")
-                .font(.title3.weight(.bold))
-
-            Spacer()
-
-            Button {
-                viewModel.commitMyRestaurantRecord(
-                    id: restaurant.id,
-                    visitStatus: currentVisitStatus,
-                    rating: currentMyRating,
-                    note: currentMyNote
-                )
-                dismiss()
-            } label: {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .frame(width: 66, height: 66)
-                    .background(Color(uiColor: .systemBackground), in: Circle())
-                    .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
-            }
-            .accessibilityLabel("완료")
-        }
-        .frame(maxWidth: .infinity)
     }
 
     // MARK: - [헬퍼 서브뷰] 헤더 뷰 (Semantic Title2 & Subheadline)

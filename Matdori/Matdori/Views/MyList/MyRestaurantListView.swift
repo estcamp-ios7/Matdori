@@ -155,28 +155,42 @@ struct MyRestaurantListView: View {
         .frame(minWidth: 70)
     }
 
-    // MARK: - [헬퍼 서브뷰] 2. 리뷰어 랭킹 배지 카드
+    // MARK: - [헬퍼 서브뷰] 2. 리뷰어 랭킹 배지 카드 (좌측 텍스트 그룹 + Spacer + 우측 원형 SF Symbol 배지)
     private var reviewerRankBadgeCard: some View {
-        HStack(spacing: 12) {
-            Text("🏆")
-                .font(.title2)
-
-            VStack(alignment: .leading, spacing: 2) {
+        HStack {
+            // 좌측 텍스트 그룹 ("11월의 맛집 탐험가", "광주지역 리뷰어 3위")
+            VStack(alignment: .leading, spacing: 3) {
                 Text("11월의 맛집 탐험가")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.primary)
 
-                Text("광주 지역 리뷰어 3위")
+                Text("광주지역 리뷰어 3위")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
+
+            // 우측 원형 SF Symbol 트로피 배지
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                    .frame(width: 42, height: 42)
+
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 20))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.orange)
+            }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.06), lineWidth: 1)
+        )
         .padding(.horizontal, 16)
     }
 
