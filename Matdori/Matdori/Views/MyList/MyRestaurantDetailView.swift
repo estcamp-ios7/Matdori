@@ -108,7 +108,7 @@ struct MyRestaurantDetailView: View {
                         Label("완료", systemImage: "checkmark")
                             .labelStyle(.titleAndIcon)
                             .font(.headline.weight(.semibold))
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.accentColor)
                             .frame(minWidth: 44, minHeight: 44)
                             .contentShape(Rectangle())
                     }
@@ -143,26 +143,21 @@ struct MyRestaurantDetailView: View {
                 .font(.subheadline.weight(.bold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
-                .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.15))
-                .foregroundStyle(Color.orange)
+                .background(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.15))
+                .foregroundStyle(Color.accentColor)
                 .clipShape(Capsule())
         }
     }
 
-    // MARK: - [헬퍼 서브뷰] 기본 별점 뷰 (Semantic Subheadline & Caption)
+    // MARK: - [헬퍼 서브뷰] 기본 별점 뷰 (RatingStarRow 재사용 컴포넌트 적용)
     private var baseRatingView: some View {
         HStack(spacing: 6) {
-            HStack(spacing: 2) {
-                ForEach(1...5, id: \.self) { idx in
-                    Image(systemName: idx <= Int(restaurant.baseRating) ? "star.fill" : (Double(idx) - 0.5 <= restaurant.baseRating ? "star.leadinghalf.filled" : "star"))
-                        .font(.caption)
-                        .foregroundStyle(Color.orange)
-                }
-            }
+            RatingStarRow(rating: restaurant.baseRating, font: .caption)
+
             Text(String(format: "%.1f", restaurant.baseRating))
                 .font(.subheadline.weight(.bold))
                 .monospacedDigit()
-                .foregroundStyle(Color.orange)
+                .foregroundStyle(Color.accentColor)
             Text("(방문자 평가 평균)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -235,7 +230,8 @@ private struct RestaurantPhotoViewer: View {
                     .font(.headline.weight(.bold))
                     .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-                    .background(.black.opacity(0.55), in: Circle())
+                    .background(.black.opacity(0.55), in: Circle()
+                )
             }
             .accessibilityLabel("사진 닫기")
             .padding(.top, 16)

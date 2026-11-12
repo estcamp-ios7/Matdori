@@ -30,11 +30,11 @@ struct FeedDistrictFilterBar: View {
                         viewModel.selectedFeedDistrict = district
                     } label: {
                         HStack(spacing: 4) {
-                            // 계층형 SF Symbol 위치 아이콘 (선택 시 화이트, 미선택 시 오렌지)
+                            // 계층형 SF Symbol 위치 아이콘 (선택 시 화이트, 미선택 시 액센트 컬러)
                             Image(systemName: "mappin.circle.fill")
                                 .font(.caption)
                                 .symbolRenderingMode(.hierarchical)
-                                .foregroundStyle(isSelected ? Color.white : Color.orange)
+                                .foregroundStyle(isSelected ? Color.white : Color.accentColor)
 
                             // 자치구 명칭 텍스트 (Semantic Subheadline)
                             Text(district.rawValue)
@@ -43,10 +43,10 @@ struct FeedDistrictFilterBar: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .frame(minHeight: 44) // Apple HIG 최소 터치 높이 44pt 보장
-                        // 선택된 칩은 오렌지 배경, 미선택 칩은 시스템 서브 배경색 적용
+                        // 선택된 칩은 액센트 컬러 배경, 미선택 칩은 시스템 서브 배경색 적용
                         .background(
                             Capsule()
-                                .fill(isSelected ? Color.orange : Color(uiColor: .secondarySystemBackground))
+                                .fill(isSelected ? Color.accentColor : Color(uiColor: .secondarySystemBackground))
                         )
                         // 선택 여부에 따른 글자색 대비 설정
                         .foregroundStyle(isSelected ? Color.white : Color.primary)

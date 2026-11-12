@@ -27,22 +27,22 @@ struct NearbyRestaurantRow: View {
                     HStack(spacing: 2) {
                         Image(systemName: "star.fill")
                             .font(.caption2)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.accentColor)
 
                         Text(String(format: "%.1f", restaurant.baseRating))
                             .font(.subheadline.weight(.semibold))
                             .monospacedDigit()
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.accentColor)
                     }
 
-                    // 북마크된 식당인 경우 주황색 '저장됨' 배지 표시
+                    // 북마크된 식당인 경우 액센트 컬러 '저장됨' 배지 표시
                     if restaurant.isSaved {
                         Text("저장됨")
                             .font(.caption2.weight(.semibold))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(Color.orange.opacity(0.15))
-                            .foregroundStyle(Color.orange)
+                            .background(Color.accentColor.opacity(0.15))
+                            .foregroundStyle(Color.accentColor)
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                 }
@@ -52,7 +52,7 @@ struct NearbyRestaurantRow: View {
                     // 음식 카테고리
                     Text(restaurant.category.rawValue)
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Color.accentColor)
 
                     Text("•")
                         .font(.caption2)

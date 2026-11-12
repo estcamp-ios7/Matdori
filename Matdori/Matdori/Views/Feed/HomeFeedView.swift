@@ -71,17 +71,17 @@ struct HomeFeedView: View {
             HStack(spacing: 6) {
                 Image(systemName: "location.circle.fill")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
 
-                Text("광주광역시 한정 피드")
+                Text("광주광역시 피드")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
 
                 Spacer()
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+            .background(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
             .clipShape(Capsule())
 
             // 피드 대표 타이틀 및 서브 타이틀 (Apple HIG Semantic Typography)

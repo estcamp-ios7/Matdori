@@ -68,12 +68,12 @@ struct FeedPhotoGalleryView: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                    .fill(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
                     .frame(width: 44, height: 44)
 
                 Image(systemName: restaurant.category.iconName)
                     .font(.title3)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -93,7 +93,7 @@ struct FeedPhotoGalleryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.orange.opacity(0.15), lineWidth: 1)
+                .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.accentColor.opacity(0.15), lineWidth: 1)
         )
     }
 }

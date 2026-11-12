@@ -28,7 +28,7 @@ struct NearbySearchBar: View {
                         Image(systemName: "location.fill")
                             .font(.subheadline)
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.accentColor)
 
                         Text("현재 위치:")
                             .font(.subheadline)
@@ -41,7 +41,7 @@ struct NearbySearchBar: View {
 
                         Image(systemName: "chevron.down")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.accentColor)
                     }
                     .frame(minHeight: 44) // Apple HIG 최소 터치 높이 44pt 보장
                     .contentShape(Rectangle())
@@ -58,7 +58,7 @@ struct NearbySearchBar: View {
                 Image(systemName: "magnifyingglass")
                     .font(.body)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
 
                 // 검색어 입력 텍스트필드 (Semantic Callout)
                 TextField("지역, 음식, 식당 검색 (예: 동명동, 오리탕)", text: $viewModel.searchQuery)

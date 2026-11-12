@@ -28,13 +28,13 @@ struct RestaurantMenuSection: View {
                             Text(menu.name)
                                 .font(.subheadline.weight(menu.isSignature ? .bold : .regular))
 
-                            // 대표 메뉴인 경우 주황색 '대표' 배지 표시 (Semantic Caption2)
+                            // 대표 메뉴인 경우 액센트 컬러 '대표' 배지 표시 (Semantic Caption2)
                             if menu.isSignature {
                                 Text("대표")
                                     .font(.caption2.weight(.bold))
                                     .padding(.horizontal, 5)
                                     .padding(.vertical, 2)
-                                    .background(Color.orange)
+                                    .background(Color.accentColor)
                                     .foregroundStyle(.white)
                                     .clipShape(RoundedRectangle(cornerRadius: 4))
                             }

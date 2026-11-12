@@ -38,8 +38,8 @@ struct MyRestaurantRecordSection: View {
         VStack(alignment: .leading, spacing: 14) {
             // MARK: 1. 헤더: 북마크 아이콘 + 현재 평점 텍스트 (Semantic Headline & Subheadline)
             HStack {
-                Image(systemName: "bookmark.fill")
-                    .foregroundStyle(Color.orange)
+//                Image(systemName: "bookmark.fill")
+//                    .foregroundStyle(Color.accentColor)
 
                 Text("나만의 맛집 기록")
                     .font(.headline)
@@ -50,7 +50,7 @@ struct MyRestaurantRecordSection: View {
                     Text("\(rating) / 5점")
                         .font(.subheadline.weight(.bold))
                         .monospacedDigit()
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Color.accentColor)
                 } else {
                     Text("별점을 선택해주세요")
                         .font(.caption)
@@ -74,7 +74,7 @@ struct MyRestaurantRecordSection: View {
                         Image(systemName: currentVisitStatus == .visited ? "checkmark.seal.fill" : "bookmark.fill")
                             .font(.headline)
                             .symbolRenderingMode(.hierarchical)
-                            .foregroundStyle(currentVisitStatus == .visited ? Color.white : Color.orange)
+                            .foregroundStyle(currentVisitStatus == .visited ? Color.white : Color.accentColor)
 
                         // 방문 상태 텍스트 및 서브 안내
                         VStack(alignment: .leading, spacing: 2) {
@@ -100,7 +100,7 @@ struct MyRestaurantRecordSection: View {
                     .frame(minHeight: 48) // Apple HIG 최소 터치 높이 44pt 보장
                     .background(
                         currentVisitStatus == .visited
-                        ? Color.orange
+                        ? Color.accentColor
                         : Color(uiColor: .secondarySystemGroupedBackground)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -143,7 +143,7 @@ struct MyRestaurantRecordSection: View {
                         } label: {
                             Image(systemName: (currentMyRating != nil && star <= (currentMyRating ?? 0)) ? "star.fill" : "star")
                                 .font(.title)
-                                .foregroundStyle((currentMyRating != nil && star <= (currentMyRating ?? 0)) ? Color.orange : Color.gray.opacity(0.35))
+                                .foregroundStyle((currentMyRating != nil && star <= (currentMyRating ?? 0)) ? Color.accentColor : Color.gray.opacity(0.35))
                                 .frame(width: 44, height: 44) // HIG 최소 터치 규격 44x44pt 보장
                                 .contentShape(Rectangle())
                         }
@@ -181,7 +181,7 @@ struct MyRestaurantRecordSection: View {
                 HStack {
                     Image(systemName: "square.and.pencil")
                         .font(.caption)
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Color.accentColor)
 
                     Text("나만의 메모")
                         .font(.caption.weight(.semibold))
@@ -202,10 +202,10 @@ struct MyRestaurantRecordSection: View {
                                 Text("완료")
                                     .font(.caption.weight(.semibold))
                             }
-                            .foregroundStyle(Color.orange)
+                            .foregroundStyle(Color.accentColor)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                            .background(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
                             .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -228,7 +228,7 @@ struct MyRestaurantRecordSection: View {
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(
                                 isNoteFocused
-                                ? Color.orange
+                                ? Color.accentColor
                                 : (colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08)),
                                 lineWidth: isNoteFocused ? 1.5 : 1
                             )
@@ -240,7 +240,7 @@ struct MyRestaurantRecordSection: View {
             }
         }
         .padding(16)
-        .background(Color.orange.opacity(colorScheme == .dark ? 0.15 : 0.08))
+        .background(Color.accentColor.opacity(colorScheme == .dark ? 0.15 : 0.08))
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }

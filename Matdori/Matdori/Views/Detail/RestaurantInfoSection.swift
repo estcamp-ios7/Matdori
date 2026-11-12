@@ -42,7 +42,7 @@ struct RestaurantInfoSection: View {
             Image(systemName: icon)
                 .font(.subheadline)
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Color.orange)
+                .foregroundStyle(Color.accentColor)
                 .frame(width: 20)
                 
 

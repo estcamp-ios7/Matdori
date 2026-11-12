@@ -3,7 +3,7 @@
 //  project2
 //
 //  맛집 데이터 관리 및 비즈니스 로직을 담당하는 뷰모델
-//  (성능 최적화: 검색어 고속 패스, 지도 전용 마커 분리, 데이터 로더 서비스 분리)
+//  (성능 최적화: 단일 패스 필터링 파이프라인, 검색어 정규화 캐싱, 지도 마커 슬라이싱, 서비스 레이어 분리)
 //
 
 import SwiftUI
@@ -41,89 +41,47 @@ final class RestaurantViewModel {
     // MARK: 주변 맛집 정렬 옵션 (기본값: 거리순)
     var sortOption: NearbySortOption = .distance
 
-    // MARK: 초기 맛집 리스트 (데이터 로더 서비스를 통해 로드)
+    // MARK: 식당 리스트 (데이터 로더 서비스를 통해 초기 데이터 및 시딩 레코드 로드)
     var restaurants: [Restaurant] = []
 
     init() {
-        var list = RestaurantsDataLoader.load()
-
-        // 진솔한 리뷰 피드에서 도움을 많이 받은 대표 리뷰가 먼저 보이도록 샘플 반응 수를 준비합니다.
-        for restaurantIndex in list.indices {
-            for reviewIndex in list[restaurantIndex].reviews.indices {
-                if list[restaurantIndex].reviews[reviewIndex].helpfulCount == 0 {
-                    list[restaurantIndex].reviews[reviewIndex].helpfulCount = max(3, 18 - restaurantIndex * 2 - reviewIndex * 3)
-                }
-            }
-        }
-
-        // MARK: 마이페이지 레퍼런스 화면처럼 풍성한 데이터를 위해 초기 6개 식당에 샘플 기록 주입
-        if list.count >= 6 {
-            list[0].isSaved = true
-            list[0].visitStatus = .visited
-            list[0].myRating = 5
-            list[0].myNote = "국물이 진하고 불향이 예술입니다. 재방문 의사 100%!"
-
-            list[1].isSaved = true
-            list[1].visitStatus = .visited
-            list[1].myRating = 4
-            list[1].myNote = "보리굴비와 게장 밑반찬 구성이 전라도의 깊은 손맛을 보여줌."
-
-            list[2].isSaved = true
-            list[2].visitStatus = .wantToGo
-            list[2].myRating = 5
-            list[2].myNote = "파스타 소스가 일품이라고 추천받아서 꼭 가볼 예정."
-
-            list[3].isSaved = true
-            list[3].visitStatus = .visited
-            list[3].myRating = 4
-            list[3].myNote = "매콤달콤한 양념 떡볶이와 튀김 조합이 최고."
-
-            list[4].isSaved = true
-            list[4].visitStatus = .visited
-            list[4].myRating = 5
-            list[4].myNote = "신선한 스시와 정갈한 플레이팅으로 대접받는 느낌."
-
-            list[5].isSaved = true
-            list[5].visitStatus = .wantToGo
-            list[5].myNote = "딸기 케이크와 핸드드립 커피 비주얼이 너무 예뻐 찜해둠."
-        }
-
-        self.restaurants = list
+        self.restaurants = RestaurantsDataLoader.loadInitialData()
     }
 
-    // MARK: - 필터링 연산 프로퍼티
+    // MARK: - 성능 최적화된 필터링 연산 파이프라인
 
-    // 주변 맛집 목록 (카테고리, 검색어 고속 패스, 정렬 통합 적용)
+    // 주변 맛집 목록 (단일 패스 조건 필터링 + 인플레이스 정렬로 불필요한 중간 배열 생성 방지)
     var filteredNearbyRestaurants: [Restaurant] {
-        var list = restaurants
+        let trimmedQuery = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let hasQuery = !trimmedQuery.isEmpty
+        let hasCategory = (selectedCategory != .all)
 
-        // 1. 카테고리 필터
-        if selectedCategory != .all {
-            list = list.filter { $0.category == selectedCategory }
-        }
-
-        // 2. 통합 검색 필터 (고속 패스: 검색어가 비어있을 때는 O(N) 문자열 매칭 건너뜀)
-        let query = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !query.isEmpty {
-            list = list.filter { r in
-                let matchName = r.name.lowercased().contains(query)
-                let matchDistrict = r.district.rawValue.lowercased().contains(query)
-                let matchAddress = r.address.lowercased().contains(query)
-                let matchCategory = r.category.rawValue.lowercased().contains(query)
-                let matchMenu = r.menus.contains { $0.name.lowercased().contains(query) }
-                return matchName || matchDistrict || matchAddress || matchCategory || matchMenu
+        // 단일 패스로 카테고리와 검색어 조건을 일괄 평가하여 탐색 비용 최적화
+        var result = restaurants.filter { restaurant in
+            if hasCategory && restaurant.category != selectedCategory {
+                return false
             }
+
+            guard hasQuery else { return true }
+
+            let matchName = restaurant.name.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchDistrict = restaurant.district.rawValue.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchAddress = restaurant.address.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchCategory = restaurant.category.rawValue.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchMenu = restaurant.menus.contains { $0.name.localizedCaseInsensitiveContains(trimmedQuery) }
+
+            return matchName || matchDistrict || matchAddress || matchCategory || matchMenu
         }
 
-        // 3. 정렬 옵션 적용 (거리순 오름차순, 평점순 내림차순)
+        // 정렬 옵션 적용
         switch sortOption {
         case .distance:
-            list.sort { $0.distanceMeters < $1.distanceMeters }
+            result.sort { $0.distanceMeters < $1.distanceMeters }
         case .rating:
-            list.sort { $0.baseRating > $1.baseRating }
+            result.sort { $0.baseRating > $1.baseRating }
         }
 
-        return list
+        return result
     }
 
     // MARK: [성능 최적화] 지도 전용 표출 마커 컬렉션 (Top 40곳 슬라이싱으로 MapKit GPU 과부하 방지)
@@ -155,13 +113,15 @@ final class RestaurantViewModel {
         restaurants.filter { $0.isSaved && ($0.myRating != nil || !$0.myNote.isEmpty) }.count
     }
 
-    // MARK: 마이페이지 선택된 탭 및 카테고리별 필터링 식당 목록
+    // MARK: 마이페이지 선택된 탭 및 카테고리별 필터링 식당 목록 (단일 패스 조건 필터링)
     var myTabFilteredRestaurants: [Restaurant] {
-        restaurants.filter { r in
+        let hasCategory = (myListCategory != .all)
+
+        return restaurants.filter { r in
             guard r.isSaved else { return false }
 
             // 1. 카테고리 필터
-            if myListCategory != .all && r.category != myListCategory {
+            if hasCategory && r.category != myListCategory {
                 return false
             }
 
@@ -177,31 +137,31 @@ final class RestaurantViewModel {
         }
     }
 
-    // 피드 목록 필터링 (선택된 광주 자치구 + 피드 검색어 다중 필드 매칭)
+    // 피드 목록 필터링 (단일 패스로 자치구 및 검색어 다중 필드 매칭)
     var filteredFeedRestaurants: [Restaurant] {
-        var list = restaurants
+        let trimmedQuery = feedSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let hasQuery = !trimmedQuery.isEmpty
+        let hasDistrict = (selectedFeedDistrict != .all)
 
-        // 1. 광주 자치구 필터 적용
-        if selectedFeedDistrict != .all {
-            list = list.filter { $0.district == selectedFeedDistrict }
-        }
-
-        // 2. 피드 검색어 필터 (고속 패스: 비어있을 때 즉시 반환)
-        let query = feedSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !query.isEmpty {
-            list = list.filter { r in
-                let matchName = r.name.lowercased().contains(query)
-                let matchDistrict = r.district.rawValue.lowercased().contains(query)
-                let matchCategory = r.category.rawValue.lowercased().contains(query)
-                let matchMenu = r.menus.contains { $0.name.lowercased().contains(query) }
-                let matchReview = r.reviews.contains {
-                    $0.content.lowercased().contains(query) || $0.authorName.lowercased().contains(query)
-                }
-                return matchName || matchDistrict || matchCategory || matchMenu || matchReview
+        return restaurants.filter { r in
+            // 자치구 필터
+            if hasDistrict && r.district != selectedFeedDistrict {
+                return false
             }
-        }
 
-        return list
+            // 검색어 고속 패스
+            guard hasQuery else { return true }
+
+            let matchName = r.name.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchDistrict = r.district.rawValue.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchCategory = r.category.rawValue.localizedCaseInsensitiveContains(trimmedQuery)
+            let matchMenu = r.menus.contains { $0.name.localizedCaseInsensitiveContains(trimmedQuery) }
+            let matchReview = r.reviews.contains {
+                $0.content.localizedCaseInsensitiveContains(trimmedQuery) || $0.authorName.localizedCaseInsensitiveContains(trimmedQuery)
+            }
+
+            return matchName || matchDistrict || matchCategory || matchMenu || matchReview
+        }
     }
 
     // MARK: - 비즈니스 로직 메서드 & 저장 파이프라인

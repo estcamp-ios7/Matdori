@@ -46,3 +46,20 @@ struct MainTabContainerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
+// MARK: - 프리뷰
+#Preview("메인 탭 컨테이너 - 라이트") {
+    MainTabContainerView(
+        viewModel: RestaurantViewModel(),
+        navState: AppNavigationState()
+    )
+    .preferredColorScheme(.light)
+}
+
+#Preview("메인 탭 컨테이너 - 다크") {
+    MainTabContainerView(
+        viewModel: RestaurantViewModel(),
+        navState: AppNavigationState()
+    )
+    .preferredColorScheme(.dark)
+}

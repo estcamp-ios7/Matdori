@@ -46,7 +46,7 @@ struct MyRestaurantListView: View {
                         }
                     }
                 }
-                .padding(.top, 16)
+//                .padding(.top, 16)
                 .safeAreaPadding(.bottom, 100)
             }
             .background(Color(uiColor: .systemBackground).ignoresSafeArea())
@@ -124,7 +124,7 @@ struct MyRestaurantListView: View {
             }
             .padding(.horizontal, 24)
 
-            // 프로필 편집 버튼 (오렌지 풀와이드 버튼)
+            // 프로필 편집 버튼 (액센트 컬러 풀와이드 버튼)
             Button {
                 // 프로필 편집 액션
             } label: {
@@ -133,7 +133,7 @@ struct MyRestaurantListView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44) // HIG 44pt 보장
-                    .background(Color.orange)
+                    .background(Color.accentColor)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
@@ -174,13 +174,13 @@ struct MyRestaurantListView: View {
             // 우측 원형 SF Symbol 트로피 배지
             ZStack {
                 Circle()
-                    .fill(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                    .fill(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
                     .frame(width: 42, height: 42)
 
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 20))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
             }
         }
         .padding(.horizontal, 16)
@@ -211,7 +211,7 @@ struct MyRestaurantListView: View {
         }
     }
 
-    // 개별 탭 버튼 (오렌지 인디케이터 바)
+    // 개별 탭 버튼 (액센트 인디케이터 바)
     private func tabButton(tab: MyRecordTab, count: Int) -> some View {
         Button {
             viewModel.selectedMyRecordTab = tab
@@ -224,11 +224,11 @@ struct MyRestaurantListView: View {
                         .font(.caption.weight(.bold))
                         .monospacedDigit()
                 }
-                .foregroundStyle(viewModel.selectedMyRecordTab == tab ? Color.orange : Color.secondary)
+                .foregroundStyle(viewModel.selectedMyRecordTab == tab ? Color.accentColor : Color.secondary)
 
                 // 하단 인디케이터 바
                 Rectangle()
-                    .fill(viewModel.selectedMyRecordTab == tab ? Color.orange : Color.clear)
+                    .fill(viewModel.selectedMyRecordTab == tab ? Color.accentColor : Color.clear)
                     .frame(height: 2)
             }
             .frame(maxWidth: .infinity)
@@ -280,7 +280,7 @@ struct MyRestaurantListView: View {
                 } label: {
                     Image(systemName: "square.grid.3x3")
                         .font(.subheadline)
-                        .foregroundStyle(viewModel.myListViewMode == .grid ? Color.orange : Color.secondary)
+                        .foregroundStyle(viewModel.myListViewMode == .grid ? Color.accentColor : Color.secondary)
                         .frame(width: 38, height: 38)
                         .contentShape(Rectangle())
                 }
@@ -290,7 +290,7 @@ struct MyRestaurantListView: View {
                 } label: {
                     Image(systemName: "list.bullet")
                         .font(.subheadline)
-                        .foregroundStyle(viewModel.myListViewMode == .list ? Color.orange : Color.secondary)
+                        .foregroundStyle(viewModel.myListViewMode == .list ? Color.accentColor : Color.secondary)
                         .frame(width: 38, height: 38)
                         .contentShape(Rectangle())
                 }
@@ -325,11 +325,11 @@ struct MyRestaurantListView: View {
                                         .clipped()
                                 } else {
                                     Rectangle()
-                                        .fill(Color.orange.opacity(0.15))
+                                        .fill(Color.accentColor.opacity(0.15))
                                         .overlay {
                                             Image(systemName: item.category.iconName)
                                                 .font(.title2)
-                                                .foregroundStyle(Color.orange)
+                                                .foregroundStyle(Color.accentColor)
                                         }
                                 }
                             }
@@ -365,10 +365,7 @@ struct MyRestaurantListView: View {
             ForEach(viewModel.myTabFilteredRestaurants) { item in
                 MyRestaurantCard(
                     restaurant: item,
-                    onTap: { onSelectRestaurant(item) },
-                    onRatingChange: { newRating in
-                        viewModel.updateMyRating(id: item.id, rating: newRating)
-                    }
+                    onTap: { onSelectRestaurant(item) }
                 )
             }
         }
@@ -392,6 +389,7 @@ struct MyRestaurantListView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 200)
         .padding(.horizontal, 16)
+        
     }
 }
 

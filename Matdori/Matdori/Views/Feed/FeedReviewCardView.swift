@@ -25,7 +25,7 @@ struct FeedReviewCardView: View {
                 Image(systemName: review.authorAvatar)
                     .font(.title3)
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.accentColor)
 
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 6) {
@@ -38,8 +38,8 @@ struct FeedReviewCardView: View {
                             .font(.caption2.weight(.semibold))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
-                            .foregroundStyle(Color.orange)
+                            .background(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                            .foregroundStyle(Color.accentColor)
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
 
@@ -58,14 +58,8 @@ struct FeedReviewCardView: View {
                 reviewThumbnailView(review: review, category: restaurant.category)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    // 1~5점 별점 표출 (Semantic Caption2)
-                    HStack(spacing: 2) {
-                        ForEach(1...5, id: \.self) { star in
-                            Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
-                                .font(.caption2)
-                                .foregroundStyle(Color.yellow)
-                        }
-                    }
+                    // 1~5점 별점 표출 (RatingStarRow 재사용 컴포넌트)
+                    RatingStarRow(rating: review.rating, font: .caption2, activeColor: .yellow)
 
                     // 솔직 리뷰 본문 (Semantic Subheadline, 최대 2줄 말줄임)
                     Text(review.content)
@@ -83,7 +77,7 @@ struct FeedReviewCardView: View {
                             systemImage: isHelpful ? "hand.thumbsup.fill" : "hand.thumbsup"
                         )
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.accentColor)
                     }
                     .buttonStyle(.plain)
                 }

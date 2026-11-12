@@ -70,12 +70,12 @@ struct CustomTabBar: View {
                 Image(systemName: icon)
                     .font(.system(size: 19, weight: selectedTab == tab ? .bold : .regular))
                     .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(selectedTab == tab ? Color.orange : Color.secondary)
+                    .foregroundStyle(selectedTab == tab ? Color.accentColor : Color.secondary)
 
                 // Semantic Typography (caption2) 적용
                 Text(title)
                     .font(.caption2.weight(selectedTab == tab ? .bold : .medium))
-                    .foregroundStyle(selectedTab == tab ? Color.orange : Color.secondary)
+                    .foregroundStyle(selectedTab == tab ? Color.accentColor : Color.secondary)
             }
             .frame(minWidth: 48, minHeight: 44) // Apple HIG 최소 터치 규격 44x44pt 보장
             .contentShape(Rectangle())

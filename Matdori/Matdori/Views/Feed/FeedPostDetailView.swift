@@ -66,9 +66,9 @@ struct FeedPostDetailView: View {
             // 원형 작성자 아바타 아이콘
             Image(systemName: review.authorAvatar)
                 .font(.system(size: 24))
-                .foregroundStyle(Color.orange)
+                .foregroundStyle(Color.accentColor)
                 .frame(width: 46, height: 46)
-                .background(Color.orange.opacity(colorScheme == .dark ? 0.25 : 0.12))
+                .background(Color.accentColor.opacity(colorScheme == .dark ? 0.25 : 0.12))
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 4) {
@@ -102,20 +102,16 @@ struct FeedPostDetailView: View {
             HStack(spacing: 6) {
                 Image(systemName: "fork.knife")
                     .font(.system(size: 12))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
 
                 Text(restaurant.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.primary)
             }
 
-            // 1~5점 별점 렌더링 및 방문 날짜
+            // 1~5점 별점 렌더링 (RatingStarRow 재사용 컴포넌트) 및 방문 날짜
             HStack(spacing: 4) {
-                ForEach(1...5, id: \.self) { star in
-                    Image(systemName: star <= Int(review.rating) ? "star.fill" : "star")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.yellow)
-                }
+                RatingStarRow(rating: review.rating, font: .system(size: 18), activeColor: .yellow, spacing: 4)
 
                 Text(String(format: "%.1f", review.rating))
                     .font(.system(size: 16, weight: .bold))
@@ -153,7 +149,7 @@ struct FeedPostDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    // MARK: - [헬퍼 서브뷰] 하단 식당 상세 바로가기 카드
+    // MARK: - [헬퍼 서브뷰] 하단 식당 상세페이지 바로가기 카드
     private var restaurantDirectLinkCard: some View {
         NavigationLink {
             RestaurantDetailView(viewModel: viewModel, restaurant: restaurant)
@@ -161,7 +157,7 @@ struct FeedPostDetailView: View {
             HStack(spacing: 12) {
                 Image(systemName: "mappin.and.ellipse")
                     .font(.system(size: 20))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(Color.accentColor)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(restaurant.name)
@@ -189,9 +185,32 @@ struct FeedPostDetailView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
     }
+}
+
+// MARK: - 프리뷰
+#Preview("피드 리뷰 상세 - 라이트") {
+    NavigationStack {
+        FeedPostDetailView(
+            viewModel: RestaurantViewModel(),
+            restaurant: RestaurantViewModel().restaurants[0],
+            review: RestaurantViewModel().restaurants[0].reviews[0]
+        )
+    }
+    .preferredColorScheme(.light)
+}
+
+#Preview("피드 리뷰 상세 - 다크") {
+    NavigationStack {
+        FeedPostDetailView(
+            viewModel: RestaurantViewModel(),
+            restaurant: RestaurantViewModel().restaurants[0],
+            review: RestaurantViewModel().restaurants[0].reviews[0]
+        )
+    }
+    .preferredColorScheme(.dark)
 }

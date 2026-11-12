@@ -32,7 +32,7 @@ struct CategoryFilterBar: View {
                             .frame(minHeight: 44) // Apple HIG 최소 터치 높이 44pt 보장
                             .background(
                                 Capsule()
-                                    .fill(selectedCategory == category ? Color.orange : Color(uiColor: .secondarySystemBackground))
+                                    .fill(selectedCategory == category ? Color.accentColor : Color(uiColor: .secondarySystemBackground))
                             )
                             .foregroundStyle(selectedCategory == category ? Color.white : Color.primary)
                     }
