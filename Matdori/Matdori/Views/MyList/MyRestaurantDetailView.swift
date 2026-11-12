@@ -29,6 +29,9 @@ struct MyRestaurantDetailView: View {
     // MARK: 나만의 메모 텍스트 상태
     @State private var currentMyNote: String = ""
 
+    // MARK: 대표 사진 전체 화면 표시 상태
+    @State private var isShowingPhotoViewer = false
+
     // MARK: 초기화 구문: 뷰모델의 최신 값으로 로컬 상태 동기화
     init(viewModel: RestaurantViewModel, restaurant: Restaurant) {
         self.viewModel = viewModel
@@ -40,80 +43,86 @@ struct MyRestaurantDetailView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        ZStack(alignment: .top) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    // MARK: 1. 식당 이름 및 카테고리 태그 헤더
                     headerView
                         .padding(.horizontal, 16)
 
-                    // MARK: 2. 기본 별점 (방문자 평가 평균)
                     baseRatingView
                         .padding(.horizontal, 16)
 
-                    // MARK: 3. 상단 대표 음식 사진 영역
                     topPhotoHeaderView
                         .padding(.horizontal, 16)
 
-                    // MARK: 4. 나만의 맛집 기록 서브뷰 (방문상태, 별점 및 메모)
                     MyRestaurantRecordSection(
                         restaurantId: restaurant.id,
                         currentVisitStatus: $currentVisitStatus,
                         currentMyRating: $currentMyRating,
                         currentMyNote: $currentMyNote,
-                        onRatingChange: { newRating in
-                            // 실시간 임시 반영
-                            currentMyRating = newRating
-                        },
-                        onNoteChange: { newNote in
-                            // 실시간 텍스트 동기화
-                            currentMyNote = newNote
-                        }
+                        onRatingChange: { currentMyRating = $0 },
+                        onNoteChange: { currentMyNote = $0 }
                     )
                     .padding(.horizontal, 16)
                     .padding(.bottom, 40)
                 }
-                .padding(.top, 16)
+                .padding(.top, 88)
             }
-            .navigationTitle("나의 맛집 상세")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                // 상단 좌측 닫기 뒤로가기 버튼 (HIG Label titleAndIcon 표준)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Label("뒤로", systemImage: "chevron.left")
-                            .labelStyle(.titleAndIcon)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }
-                }
+            .scrollIndicators(.hidden)
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
 
-                // 상단 우측 완료 버튼 (단일 트랜잭션 일괄 커밋 파이프라인)
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        // MARK: [파이프라인] 뷰모델 일괄 커밋 실행
-                        viewModel.commitMyRestaurantRecord(
-                            id: restaurant.id,
-                            visitStatus: currentVisitStatus,
-                            rating: currentMyRating,
-                            note: currentMyNote
-                        )
-                        dismiss()
-                    } label: {
-                        Label("완료", systemImage: "checkmark")
-                            .labelStyle(.titleAndIcon)
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(Color.orange)
-                            .frame(minWidth: 44, minHeight: 44)
-                            .contentShape(Rectangle())
-                    }
-                }
+            detailNavigationHeader
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .background(Color(uiColor: .systemBackground).ignoresSafeArea(edges: .top))
+        }
+        .fullScreenCover(isPresented: $isShowingPhotoViewer) {
+            if let uiImage = UIImage(named: restaurant.representativePhotoName) {
+                RestaurantPhotoViewer(image: uiImage)
             }
         }
+    }
+
+    private var detailNavigationHeader: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 66, height: 66)
+                    .background(Color(uiColor: .systemBackground), in: Circle())
+                    .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
+            }
+            .accessibilityLabel("뒤로")
+
+            Spacer()
+
+            Text("나의 맛집 상세")
+                .font(.title3.weight(.bold))
+
+            Spacer()
+
+            Button {
+                viewModel.commitMyRestaurantRecord(
+                    id: restaurant.id,
+                    visitStatus: currentVisitStatus,
+                    rating: currentMyRating,
+                    note: currentMyNote
+                )
+                dismiss()
+            } label: {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .frame(width: 66, height: 66)
+                    .background(Color(uiColor: .systemBackground), in: Circle())
+                    .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1))
+            }
+            .accessibilityLabel("완료")
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - [헬퍼 서브뷰] 헤더 뷰 (Semantic Title2 & Subheadline)
@@ -156,38 +165,76 @@ struct MyRestaurantDetailView: View {
 
     // MARK: - [헬퍼 서브뷰] 상단 대표 사진 영역
     private var topPhotoHeaderView: some View {
-        ZStack(alignment: .bottomLeading) {
-            if let uiImage = UIImage(named: restaurant.representativePhotoName) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 180)
-                    .clipped()
-            } else {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .tertiarySystemGroupedBackground))
-                    .frame(height: 180)
-            }
+        Button {
+            isShowingPhotoViewer = true
+        } label: {
+            GeometryReader { proxy in
+                ZStack(alignment: .bottomLeading) {
+                    if let uiImage = UIImage(named: restaurant.representativePhotoName) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .clipped()
+                    } else {
+                        Color(uiColor: .tertiarySystemGroupedBackground)
+                    }
 
-            LinearGradient(
-                colors: [Color.clear, Color.black.opacity(0.6)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
+                    LinearGradient(
+                        colors: [Color.clear, Color.black.opacity(0.6)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
 
-            HStack(spacing: 6) {
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.caption)
-                Text(restaurant.address)
-                    .font(.caption.weight(.medium))
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.caption)
+                        Text(restaurant.address)
+                            .font(.caption.weight(.medium))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(12)
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
             }
-            .foregroundStyle(.white)
-            .padding(12)
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .contentShape(RoundedRectangle(cornerRadius: 16))
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .buttonStyle(.plain)
+        .accessibilityLabel("대표 사진 크게 보기")
+    }
+}
+
+// MARK: - 대표 사진 전체 화면 뷰
+private struct RestaurantPhotoViewer: View {
+    @Environment(\.dismiss) private var dismiss
+    let image: UIImage
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color.black
+                .ignoresSafeArea()
+
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 12)
+
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.black.opacity(0.55), in: Circle())
+            }
+            .accessibilityLabel("사진 닫기")
+            .padding(.top, 16)
+            .padding(.trailing, 16)
+        }
     }
 }
 

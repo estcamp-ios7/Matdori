@@ -47,7 +47,7 @@ struct MyRestaurantListView: View {
                     }
                 }
                 .padding(.top, 16)
-                .padding(.bottom, 60)
+                .safeAreaPadding(.bottom, 100)
             }
             .background(Color(uiColor: .systemBackground).ignoresSafeArea())
             .navigationTitle("마이페이지")
@@ -200,9 +200,7 @@ struct MyRestaurantListView: View {
     // 개별 탭 버튼 (오렌지 인디케이터 바)
     private func tabButton(tab: MyRecordTab, count: Int) -> some View {
         Button {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                viewModel.selectedMyRecordTab = tab
-            }
+            viewModel.selectedMyRecordTab = tab
         } label: {
             VStack(spacing: 6) {
                 HStack(spacing: 4) {
@@ -301,26 +299,27 @@ struct MyRestaurantListView: View {
                     onSelectRestaurant(item)
                 } label: {
                     ZStack(alignment: .bottomTrailing) {
-                        if let uiImage = UIImage(named: item.representativePhotoName) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .aspectRatio(1, contentMode: .fill)
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .aspectRatio(1, contentMode: .fit)
-                                .clipped()
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        } else {
-                            Rectangle()
-                                .fill(Color.orange.opacity(0.15))
-                                .aspectRatio(1, contentMode: .fit)
-                                .overlay(
-                                    Image(systemName: item.category.iconName)
-                                        .font(.title2)
-                                        .foregroundStyle(Color.orange)
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        }
+                        // 기준 사각형이 셀의 너비를 기준으로 정사각형 높이를 먼저 결정합니다.
+                        Rectangle()
+                            .fill(.clear)
+                            .aspectRatio(1, contentMode: .fit)
+                            .overlay {
+                                if let uiImage = UIImage(named: item.representativePhotoName) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .clipped()
+                                } else {
+                                    Rectangle()
+                                        .fill(Color.orange.opacity(0.15))
+                                        .overlay {
+                                            Image(systemName: item.category.iconName)
+                                                .font(.title2)
+                                                .foregroundStyle(Color.orange)
+                                        }
+                                }
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
 
                         // 별점이 있는 경우 우하단 작은 배지 노출
                         if let rating = item.myRating {

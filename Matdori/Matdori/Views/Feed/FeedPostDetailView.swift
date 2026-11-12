@@ -15,11 +15,9 @@ struct FeedPostDetailView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     // MARK: 피드에서 선택한 식당 및 리뷰 데이터 모델
+    @Bindable var viewModel: RestaurantViewModel
     let restaurant: Restaurant
     let review: CommunityReview
-
-    // MARK: 하단 식당 바로가기 터치 시 탐색 상세 모달을 오픈하는 콜백
-    var onSelectRestaurant: ((Restaurant) -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -157,9 +155,8 @@ struct FeedPostDetailView: View {
 
     // MARK: - [헬퍼 서브뷰] 하단 식당 상세 바로가기 카드
     private var restaurantDirectLinkCard: some View {
-        Button {
-            // 식당 상세 모달 시트 오픈 콜백 실행
-            onSelectRestaurant?(restaurant)
+        NavigationLink {
+            RestaurantDetailView(viewModel: viewModel, restaurant: restaurant)
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "mappin.and.ellipse")
@@ -197,25 +194,4 @@ struct FeedPostDetailView: View {
         }
         .buttonStyle(.plain)
     }
-}
-
-// MARK: - 프리뷰
-#Preview("피드 게시글 상세 - 라이트") {
-    NavigationStack {
-        FeedPostDetailView(
-            restaurant: RestaurantViewModel().restaurants[0],
-            review: RestaurantViewModel().restaurants[0].reviews[0]
-        )
-    }
-    .preferredColorScheme(.light)
-}
-
-#Preview("피드 게시글 상세 - 다크") {
-    NavigationStack {
-        FeedPostDetailView(
-            restaurant: RestaurantViewModel().restaurants[0],
-            review: RestaurantViewModel().restaurants[0].reviews[0]
-        )
-    }
-    .preferredColorScheme(.dark)
 }

@@ -37,23 +37,26 @@ struct RestaurantInfoSection: View {
 
     // MARK: - [헬퍼 함수] 세부 정보 단일 행 빌더 (Apple HIG 준수)
     private func infoRow(icon: String, label: String, content: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .center, spacing: 10) {
             // 계층형 SF Symbol 아이콘
             Image(systemName: icon)
                 .font(.subheadline)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Color.orange)
                 .frame(width: 20)
+                
 
             // 정보 분류 라벨 (Semantic Subheadline Medium)
             Text(label)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.secondary)
                 .frame(width: 65, alignment: .leading)
-
+                .offset(x: -7)
             // 실제 내용 텍스트 (Semantic Subheadline)
             Text(content)
-                .font(.subheadline)
+                .font(.body)
+                .lineHeight(.exact(points: 25))
+                .tracking(-0.3)
                 .foregroundStyle(.primary)
 
             Spacer()

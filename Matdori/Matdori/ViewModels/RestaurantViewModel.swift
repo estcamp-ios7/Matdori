@@ -47,6 +47,15 @@ final class RestaurantViewModel {
     init() {
         var list = RestaurantsDataLoader.load()
 
+        // 진솔한 리뷰 피드에서 도움을 많이 받은 대표 리뷰가 먼저 보이도록 샘플 반응 수를 준비합니다.
+        for restaurantIndex in list.indices {
+            for reviewIndex in list[restaurantIndex].reviews.indices {
+                if list[restaurantIndex].reviews[reviewIndex].helpfulCount == 0 {
+                    list[restaurantIndex].reviews[reviewIndex].helpfulCount = max(3, 18 - restaurantIndex * 2 - reviewIndex * 3)
+                }
+            }
+        }
+
         // MARK: 마이페이지 레퍼런스 화면처럼 풍성한 데이터를 위해 초기 6개 식당에 샘플 기록 주입
         if list.count >= 6 {
             list[0].isSaved = true

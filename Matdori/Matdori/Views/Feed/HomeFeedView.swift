@@ -16,9 +16,6 @@ struct HomeFeedView: View {
     // MARK: 식당 데이터 및 필터 상태를 공유하는 맛집 뷰모델
     @Bindable var viewModel: RestaurantViewModel
 
-    // MARK: 피드 카드 탭 시 탐색 상세페이지를 띄우기 위한 이벤트 콜백
-    var onSelectRestaurant: (Restaurant) -> Void
-
     // MARK: 피드 탭 재선택 시 Pop to Root 처리를 위한 NavigationPath 바인딩
     @Binding var navigationPath: NavigationPath
 
@@ -58,9 +55,9 @@ struct HomeFeedView: View {
                 if let r = viewModel.restaurants.first(where: { $0.id == restaurantID }),
                    let firstReview = r.reviews.first {
                     FeedPostDetailView(
+                        viewModel: viewModel,
                         restaurant: r,
-                        review: firstReview,
-                        onSelectRestaurant: onSelectRestaurant
+                        review: firstReview
                     )
                 }
             }
@@ -206,7 +203,6 @@ struct HomeFeedView: View {
     @Previewable @State var path = NavigationPath()
     HomeFeedView(
         viewModel: RestaurantViewModel(),
-        onSelectRestaurant: { _ in },
         navigationPath: $path
     )
     .preferredColorScheme(.light)
@@ -216,7 +212,6 @@ struct HomeFeedView: View {
     @Previewable @State var path = NavigationPath()
     HomeFeedView(
         viewModel: RestaurantViewModel(),
-        onSelectRestaurant: { _ in },
         navigationPath: $path
     )
     .preferredColorScheme(.dark)

@@ -32,9 +32,62 @@ struct CommunityReview: Identifiable, Codable {
     var orderCount: Int = 3      // 최근 주문/방문 횟수
     var totalReviewCount: Int = 12 // 작성한 총 리뷰 수
     var userAvgRating: Double = 4.9 // 작성자 평균 별점
+    var helpfulCount: Int = 0 // 다른 사용자에게 도움이 된 횟수
 
     enum CodingKeys: String, CodingKey {
-        case authorName, authorAvatar, rating, visitDate, content, photoName, orderCount, totalReviewCount, userAvgRating
+        case authorName, authorAvatar, rating, visitDate, content, photoName, orderCount, totalReviewCount, userAvgRating, helpfulCount
+    }
+
+    init(
+        authorName: String,
+        authorAvatar: String,
+        rating: Double,
+        visitDate: String,
+        content: String,
+        photoName: String? = nil,
+        orderCount: Int = 3,
+        totalReviewCount: Int = 12,
+        userAvgRating: Double = 4.9,
+        helpfulCount: Int = 0
+    ) {
+        self.authorName = authorName
+        self.authorAvatar = authorAvatar
+        self.rating = rating
+        self.visitDate = visitDate
+        self.content = content
+        self.photoName = photoName
+        self.orderCount = orderCount
+        self.totalReviewCount = totalReviewCount
+        self.userAvgRating = userAvgRating
+        self.helpfulCount = helpfulCount
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        authorName = try container.decode(String.self, forKey: .authorName)
+        authorAvatar = try container.decode(String.self, forKey: .authorAvatar)
+        rating = try container.decode(Double.self, forKey: .rating)
+        visitDate = try container.decode(String.self, forKey: .visitDate)
+        content = try container.decode(String.self, forKey: .content)
+        photoName = try container.decodeIfPresent(String.self, forKey: .photoName)
+        orderCount = try container.decodeIfPresent(Int.self, forKey: .orderCount) ?? 3
+        totalReviewCount = try container.decodeIfPresent(Int.self, forKey: .totalReviewCount) ?? 12
+        userAvgRating = try container.decodeIfPresent(Double.self, forKey: .userAvgRating) ?? 4.9
+        helpfulCount = try container.decodeIfPresent(Int.self, forKey: .helpfulCount) ?? 0
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(authorName, forKey: .authorName)
+        try container.encode(authorAvatar, forKey: .authorAvatar)
+        try container.encode(rating, forKey: .rating)
+        try container.encode(visitDate, forKey: .visitDate)
+        try container.encode(content, forKey: .content)
+        try container.encodeIfPresent(photoName, forKey: .photoName)
+        try container.encode(orderCount, forKey: .orderCount)
+        try container.encode(totalReviewCount, forKey: .totalReviewCount)
+        try container.encode(userAvgRating, forKey: .userAvgRating)
+        try container.encode(helpfulCount, forKey: .helpfulCount)
     }
 }
 

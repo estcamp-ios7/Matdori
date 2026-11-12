@@ -15,6 +15,7 @@ struct FeedReviewCardView: View {
     // MARK: 피드에 표시될 식당 및 리뷰 데이터 모델
     let restaurant: Restaurant
     let review: CommunityReview
+    @State private var isHelpful = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -73,6 +74,18 @@ struct FeedReviewCardView: View {
                         .lineLimit(2)
                         .truncationMode(.tail)
                         .lineSpacing(4)
+
+                    Button {
+                        isHelpful.toggle()
+                    } label: {
+                        Label(
+                            isHelpful ? "도움이 됐어요 \(review.helpfulCount + 1)" : "도움이 됐어요 \(review.helpfulCount)",
+                            systemImage: isHelpful ? "hand.thumbsup.fill" : "hand.thumbsup"
+                        )
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.orange)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 Spacer(minLength: 0)

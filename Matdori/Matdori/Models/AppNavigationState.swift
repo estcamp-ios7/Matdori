@@ -14,9 +14,6 @@ final class AppNavigationState {
     // MARK: 현재 선택된 탭 (기본값: 주변 맛집 지도)
     var selectedTab: AppTab = .map
 
-    // MARK: 주변 맛집 탐색 상세 모달 대상 식당 (nil일 경우 닫힘)
-    var selectedExploreRestaurant: Restaurant? = nil
-
     // MARK: 나의 맛집 상세 모달 대상 식당 (nil일 경우 닫힘)
     var selectedMyRestaurant: Restaurant? = nil
 
@@ -43,11 +40,6 @@ final class AppNavigationState {
 
     // MARK: - 모달 시트 제어 헬퍼 메서드
 
-    // 주변 탐색 상세 모달 열기
-    func openExploreDetail(for restaurant: Restaurant) {
-        selectedExploreRestaurant = restaurant
-    }
-
     // 나의 맛집 상세 모달 열기
     func openMyRestaurantDetail(for restaurant: Restaurant) {
         selectedMyRestaurant = restaurant
@@ -55,7 +47,6 @@ final class AppNavigationState {
 
     // 모든 열려있는 모달 시트 닫기
     func dismissAllSheets() {
-        selectedExploreRestaurant = nil
         selectedMyRestaurant = nil
     }
 }

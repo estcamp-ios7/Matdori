@@ -21,22 +21,12 @@ struct MainTabContainerView: View {
             switch navState.selectedTab {
             case .map:
                 // 1. 주변 맛집 지도 탐색 화면
-                NearbyMapView(
-                    viewModel: viewModel,
-                    onSelectRestaurant: { restaurant in
-                        // 식당 선택 시 주변 탐색 상세 모달 오픈
-                        navState.openExploreDetail(for: restaurant)
-                    }
-                )
+                NearbyMapView(viewModel: viewModel)
 
             case .feed:
                 // 2. 숨은 맛집 발견 피드 화면
                 HomeFeedView(
                     viewModel: viewModel,
-                    onSelectRestaurant: { restaurant in
-                        // 피드에서 식당 바로가기 터치 시 상세 모달 오픈
-                        navState.openExploreDetail(for: restaurant)
-                    },
                     navigationPath: $navState.feedNavigationPath,
                     scrollToTopTrigger: navState.feedScrollToTopTrigger
                 )
@@ -55,21 +45,4 @@ struct MainTabContainerView: View {
         // 전체 화면 공간을 가득 채우도록 프레임 설정
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-}
-
-// MARK: - 프리뷰
-#Preview("메인 탭 컨테이너 - 라이트") {
-    MainTabContainerView(
-        viewModel: RestaurantViewModel(),
-        navState: AppNavigationState()
-    )
-    .preferredColorScheme(.light)
-}
-
-#Preview("메인 탭 컨테이너 - 다크") {
-    MainTabContainerView(
-        viewModel: RestaurantViewModel(),
-        navState: AppNavigationState()
-    )
-    .preferredColorScheme(.dark)
 }
